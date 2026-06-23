@@ -1,0 +1,417 @@
+/**
+ * @file UnifiedChatPanel.less
+ * @description 统一聊天面板组件样式
+ *   包含侧边栏（标题、快捷提示、会话列表）、主聊天区
+ *   （消息头、消息流、消息气泡、输入栏）和响应式适配。
+ *
+ * 布局结构：
+ *   .unified-chat-panel → .unified-chat-layout
+ *     ├── .unified-chat-sidebar（310px 固定宽度）
+ *     │   ├── .unified-chat-title（Logo + 标题）
+ *     │   ├── .unified-prompt-list（快捷提示按钮）
+ *     │   └── .unified-session-list（最近 6 条会话）
+ *     └── .unified-chat-main（自适应宽度）
+ *         ├── .unified-chat-header（会话名 + 操作按钮）
+ *         ├── .unified-chat-transcript（消息流）
+ *         ├── .unified-message（消息气泡）
+ *         │   ├── .unified-avatar（头像）
+ *         │   ├── .unified-bubble（气泡内容）
+ *         │   │   └── .unified-answer-sections（结构化分段）
+ *         │   └── .unified-chat-input（输入栏 + 发送按钮）
+ *
+ * 响应式：
+ *   - ≤1120px：侧边栏折叠为水平排列，隐藏会话列表
+ *   - ≤720px：面板缩小，头部改为纵向，气泡宽度适配
+ */
+
+@import '../../styles/variables.less';
+
+/**
+ * .unified-chat-panel —— 聊天面板外层容器
+ *   深色半透明背景 + 蓝色边框 + 模糊滤镜 + 大阴影
+ */
+.unified-chat-panel {
+  width: min(1180px, calc(100vw - 320px));
+  min-height: min(650px, calc(@content-height - 44px));
+  border: 1px solid rgba(73, 153, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(5, 18, 34, 0.82) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(16px);    // 玻璃质感模糊
+
+  // Ant Design Card body 去掉默认内边距
+  .ant-card-body {
+    height: 100%;
+    min-height: inherit;
+    padding: 0;
+  }
+}
+
+/**
+ * .unified-chat-layout —— 内部网格布局
+ *   左侧 310px 侧边栏 + 右侧自适应聊天区
+ */
+.unified-chat-layout {
+  display: grid;
+  grid-template-columns: 310px minmax(0, 1fr);
+  min-height: inherit;
+}
+
+// ============================================================
+// 侧边栏
+// ============================================================
+
+/**
+ * .unified-chat-sidebar —— 侧边栏
+ *   三行布局：标题 → 提示词 → 会话列表
+ */
+.unified-chat-sidebar {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);    // 标题和提示词自适应高度，列表占剩余空间
+  gap: 16px;
+  padding: 18px;
+  border-right: 1px solid rgba(73, 153, 255, 0.22);
+  background: rgba(2, 10, 22, 0.34);                // 半透明深色背景
+}
+
+/**
+ * .unified-chat-title —— 侧边栏标题区
+ *   Logo（48px Avatar）+ 名称 + 描述文字
+ */
+.unified-chat-title {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+
+  // Logo Avatar：绿色边框 + 深色背景
+  .ant-avatar {
+    padding: 5px;
+    border: 1px solid rgba(40, 216, 129, 0.52);
+    background: rgba(8, 45, 34, 0.8);
+  }
+
+  h3 {
+    margin: 0 0 4px;
+    color: #fff;
+    font-size: 19px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ant-typography {
+    color: rgba(222, 235, 250, 0.68);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}
+
+/**
+ * .unified-prompt-list —— 快捷提示按钮列表
+ *   每个按钮深色背景 + 蓝色边框，文字靠左
+ */
+.unified-prompt-list {
+  display: grid;
+  gap: 8px;
+
+  .ant-btn {
+    justify-content: flex-start;   // 文字靠左排列
+    height: auto;
+    min-height: 36px;
+    padding: 7px 10px;
+    overflow: hidden;
+    color: #eaf4ff;
+    border-color: rgba(73, 153, 255, 0.28);
+    border-radius: 8px;
+    background: rgba(12, 34, 60, 0.64);
+    text-align: left;
+    white-space: normal;           // 允许换行
+  }
+}
+
+/**
+ * .unified-session-list —— 最近会话列表
+ *   显示最多 6 条会话，点击切换激活项
+ */
+.unified-session-list {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+
+  // 会话按钮样式（非 Ant Design 按钮）
+  button:not(.ant-btn) {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    padding: 9px 10px;
+    color: #bdd1e8;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+
+    // hover 和选中态：蓝色边框 + 半透明蓝色背景
+    &:hover,
+    &.active {
+      color: #fff;
+      border-color: rgba(73, 153, 255, 0.36);
+      background: rgba(31, 139, 255, 0.14);
+    }
+
+    // 标题和时间文字单行溢出省略
+    strong,
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    strong {
+      font-size: 13px;
+    }
+
+    span {
+      color: #8199b5;
+      font-size: 12px;
+    }
+  }
+}
+
+/** .unified-section-head —— 会话列表区头部（"最近对话" + 新建按钮） */
+.unified-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #dbeaff;
+  font-weight: 700;
+}
+
+// ============================================================
+// 主聊天区
+// ============================================================
+
+/**
+ * .unified-chat-main —— 主聊天区
+ *   三行布局：头部 → 消息流 → 输入栏
+ */
+.unified-chat-main {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  min-height: inherit;
+  padding: 18px;
+}
+
+/**
+ * .unified-chat-header —— 对话头部
+ *   会话标题 + 消息统计 + 操作按钮（复制/新建/清空）
+ */
+.unified-chat-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(73, 153, 255, 0.18);
+  min-width: 0;
+
+  > div:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  h4 {
+    margin: 0 0 2px;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  .ant-typography {
+    color: @text-muted;
+    font-size: 13px;
+  }
+}
+
+/**
+ * .unified-chat-transcript —— 消息流容器
+ *   垂直排列消息气泡，可滚动
+ */
+.unified-chat-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  padding: 18px 4px;
+  overflow: auto;
+}
+
+/**
+ * .unified-message —— 单条消息容器
+ *   助手消息靠左（默认），用户消息靠右（flex-direction: row-reverse）
+ */
+.unified-message {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+
+  // 用户消息：右对齐，绿色渐变气泡
+  &.user {
+    flex-direction: row-reverse;
+
+    .unified-bubble {
+      border-color: rgba(40, 216, 129, 0.3);
+      background: linear-gradient(135deg, rgba(11, 84, 57, 0.86), rgba(7, 35, 32, 0.92));
+    }
+  }
+}
+
+/** .unified-avatar —— 消息头像（蓝色边框 + 深色背景） */
+.unified-avatar {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(18, 58, 92, 0.86);
+
+  img {
+    object-fit: contain;
+    padding: 4px;
+  }
+}
+
+/**
+ * .unified-bubble —— 消息气泡
+ *   蓝色边框 + 深色背景 + 最大宽度 720px
+ */
+.unified-bubble {
+  width: fit-content;
+  max-width: min(720px, 82%);
+  padding: 12px 14px;
+  border: 1px solid rgba(73, 153, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(8, 24, 45, 0.86);
+
+  // 角色标签（Tag）底部间距
+  .ant-tag {
+    margin-bottom: 8px;
+  }
+
+  // 段落文字：亮白色 + 允许换行
+  .ant-typography {
+    margin: 0 !important;
+    color: #eef8ff;
+    line-height: 1.72;
+    white-space: pre-line;       // 保留换行符
+  }
+}
+
+/**
+ * .unified-answer-sections —— 结构化回答分段区域
+ *   AI 回复中按标题分段的子内容
+ */
+.unified-answer-sections {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+
+  > div {
+    padding: 9px 10px;
+    border: 1px solid rgba(128, 172, 223, 0.18);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);    // 微弱白色背景
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #fff;
+    font-size: 13px;
+  }
+
+  p {
+    margin: 0;
+    color: #d6e4f4;
+    line-height: 1.65;
+  }
+}
+
+/**
+ * .unified-chat-input —— 输入栏
+ *   输入框 + 发送按钮，圆角设计
+ */
+.unified-chat-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 46px;    // 输入框自适应 + 发送按钮固定
+  gap: 10px;
+  align-items: end;
+  padding-top: 14px;
+  border-top: 1px solid rgba(73, 153, 255, 0.18);
+
+  // 输入框样式：深色背景 + 蓝色边框
+  textarea.ant-input {
+    min-height: 46px;
+    padding: 12px 14px;
+    color: #fff;
+    border-color: rgba(73, 153, 255, 0.34);
+    border-radius: 8px;
+    background: rgba(6, 20, 38, 0.9);
+    resize: none;
+
+    &::placeholder {
+      color: rgba(213, 226, 244, 0.56);
+    }
+  }
+}
+
+// ============================================================
+// 响应式适配
+// ============================================================
+
+/** ≤1120px：侧边栏折叠为水平排列，隐藏会话列表 */
+@media (max-width: 1120px) {
+  .unified-chat-panel {
+    width: calc(100vw - 40px);
+  }
+
+  .unified-chat-layout {
+    grid-template-columns: 1fr;     // 单列布局
+  }
+
+  .unified-chat-sidebar {
+    grid-template-rows: auto auto;  // 仅标题和提示词
+    border-right: 0;
+    border-bottom: 1px solid rgba(73, 153, 255, 0.22);
+  }
+
+  .unified-session-list {
+    display: none;                  // 隐藏会话列表
+  }
+}
+
+/** ≤720px：面板缩小，头部纵向排列，气泡宽度适配 */
+@media (max-width: 720px) {
+  .unified-chat-panel {
+    width: calc(100vw - 28px);
+    min-height: 720px;
+  }
+
+  .unified-chat-header {
+    align-items: flex-start;
+    flex-direction: column;         // 头部改为纵向
+  }
+
+  .unified-bubble {
+    max-width: calc(100vw - 100px); // 气泡宽度适配窄屏
+  }
+}

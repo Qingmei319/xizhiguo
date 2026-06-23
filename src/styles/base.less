@@ -1,0 +1,122 @@
+/**
+ * @file base.less
+ * @description 全局基础样式
+ *   包含 CSS Reset、滚动条定制、通用网格工具类和颜色语义类。
+ *   此文件通过 index.less 导入，作为全局样式的基础层。
+ *
+ * 模块划分：
+ *   - 全局盒模型：统一 border-box
+ *   - 根元素全屏布局：html/body/#root 占满视窗
+ *   - body 背景与文字：深色渐变背景 + 蓝色光晕
+ *   - 滚动条定制：Firefox thin 滚动条 + WebKit 细滚动条
+ *   - 网格工具类：grid-4/grid-3/grid-2/stack 快速布局
+ *   - 颜色语义类：.up(增长)/.down(下降)
+ */
+
+@import './variables.less';
+
+// --- 全局盒模型：统一使用 border-box ---
+* {
+  box-sizing: border-box;
+}
+
+// --- 根元素全屏布局：占满视窗，最小宽度 1280px ---
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 1280px;   // 保证桌面端最低宽度
+  height: 100%;
+  margin: 0;
+  overflow: hidden;     // 禁止页面级滚动，内容区自行处理
+}
+
+// --- body 背景与文字：深色渐变 + 右上角蓝色光晕 ---
+body {
+  color: @text-main;
+  background:
+    radial-gradient(circle at 72% 8%, rgba(31, 139, 255, 0.2), transparent 26rem),  // 右上角蓝色光晕
+    linear-gradient(135deg, #020814 0%, #06111f 50%, #071928 100%);                   // 深色渐变基底
+
+  // 选中文字高亮样式：白色文字 + 蓝色背景
+  &::selection {
+    color: #fff;
+    background: @primary;
+  }
+}
+
+// --- 全局滚动条样式（Firefox） ---
+// 使用 thin 滚动条，蓝色半透明滑块
+html,
+body,
+#root,
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(84, 185, 255, 0.1) transparent;
+}
+
+// --- 全局滚动条样式（WebKit: Chrome/Safari/Edge） ---
+// 3px 极细滚动条，蓝色半透明滑块，hover 时变亮
+*::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(84, 185, 255, 0.08);  // 默认极淡
+  box-shadow: none;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(114, 205, 255, 0.28);  // hover 时明显
+  box-shadow: 0 0 5px rgba(31, 139, 255, 0.22);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+// --- 通用网格布局工具类 ---
+/** 4 列等宽网格 —— 数据总览底部三卡等场景 */
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/** 3 列等宽网格 —— 快捷问题卡片、底部面板等 */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/** 2 列等宽网格 —— 基因页快捷卡片、对话态双栏 */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/** 纵向堆叠布局 —— 通用垂直间距排列 */
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+// --- 语义颜色工具类 ---
+/** 增长/正面指标 —— 绿色文字 */
+.up {
+  color: @success;
+}
+
+/** 下降/负面指标 —— 红色文字 */
+.down {
+  color: @danger;
+}

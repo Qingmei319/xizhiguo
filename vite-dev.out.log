@@ -1,0 +1,27 @@
+
+> guangxi-rag-knowledge-frontend@0.1.0 dev
+> vite --host 127.0.0.1 --host 127.0.0.1
+
+Port 5173 is in use, trying another one...
+
+  [32m[1mVITE[22m v6.4.3[39m  [2mready in [0m[1m321[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5174[22m/[39m
+[2m14:29:23[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/greenhouse/GreenhousePage.tsx[22m
+[2m14:39:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/greenhouse/GreenhousePage.tsx[22m
+[2m14:53:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/greenhouse/GreenhousePage.tsx[22m
+[2m14:53:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/greenhouse/GreenhousePage.tsx[22m
+[2m14:58:28[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/greenhouse/index.less[22m
+[2m15:00:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/greenhouse/index.less[22m
+[2m15:30:51[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/auth/LoginPage.tsx, /src/components/layout/AuthGuard.tsx, /src/features/gene/GenePage.tsx, /src/components/layout/MainLayout.tsx, /src/features/workspace/WorkspacePage.tsx, /src/features/chat/ChatPage.tsx[22m
+[2m15:31:15[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/auth/LoginPage.tsx[22m
+[2m15:31:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/AuthGuard.tsx[22m
+[2m15:32:08[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/chat/ChatPage.tsx[22m
+[2m15:32:28[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/workspace/WorkspacePage.tsx[22m
+[2m15:33:00[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/gene/GenePage.tsx[22m
+[2m15:33:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/chat/ChatPage.tsx[22m
+[2m15:34:30[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/disease/DiseasePage.tsx[22m
+[2m15:35:06[22m [36m[1m[vite][22m[39m [32mvite.config.ts changed, restarting server...[39m
+[2m15:35:06[22m [36m[1m[vite][22m[39m server restarted.
+[2m16:15:57[22m [36m[1m[vite][22m[39m [32mvite.config.ts changed, restarting server...[39m
+[2m16:15:57[22m [36m[1m[vite][22m[39m server restarted.

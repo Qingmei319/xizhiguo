@@ -1,0 +1,288 @@
+/**
+ * @file history/index.less
+ * @description 对话记录页面样式
+ *   本文件实现左侧会话列表与右侧内容预览的响应式布局。
+ *   该页面承载业务场景下的对话历史，支持搜索和资源筛选。
+ *
+ * 布局结构：
+ *   .chat-history-page
+ *     ├── .history-toolbar（顶部工具栏：标题 + 搜索 + 筛选 + 刷新）
+ *     ├── .history-layout（双栏布局）
+ *         ├── .history-list-card（左侧会话列表）
+ *         │   └── .ant-list-item × N（会话项：资源图标 + 标题 + 摘要）
+ *         └── .history-detail-card（右侧内容预览）
+ *             ├── .history-detail-head（头部：标题 + 资源标签 + 操作按钮）
+ *             └── .history-message-list（消息滚动列表）
+ *                 └── .history-message × N（消息条目，区分AI/用户左右）
+ */
+
+@import '../../styles/variables.less';
+
+/**
+ * .chat-history-page —— 对话记录页面
+ *   两行布局：顶部工具栏(auto) + 下方双栏(1fr)
+ *   高度跟随父容器撑满
+ */
+.chat-history-page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
+  height: calc(@content-height - 40px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/**
+ * .history-toolbar —— 顶部工具栏
+ *   左侧标题说明 + 右侧搜索、资源筛选和刷新按钮
+ */
+.history-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border: 1px solid rgba(73, 153, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(6, 20, 38, 0.72);
+
+  h2 {
+    margin: 0 0 4px;
+    color: #fff;
+  }
+
+  .ant-typography {
+    color: @text-muted;
+  }
+
+  // 搜索框和筛选器宽度固定 220px
+  .ant-input-affix-wrapper,
+  .ant-select {
+    width: 220px;
+  }
+}
+
+/**
+ * .history-layout —— 下方双栏
+ *   左侧会话列表（320-390px）+ 右侧内容预览（自适应）
+ */
+.history-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/**
+ * .history-list-card / .history-detail-card —— 通用卡片
+ *   蓝色边框 + 深色半透明背景 + Card body 占满高度
+ */
+.history-list-card,
+.history-detail-card {
+  border: 1px solid rgba(73, 153, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(6, 20, 38, 0.76) !important;
+
+  .ant-card-body {
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+// ============================================================
+// 左侧会话列表
+// ============================================================
+
+/**
+ * .history-list-card —— 左侧会话列表
+ *   可滚动，每行 hover/选中态显示蓝色边框
+ */
+.history-list-card {
+  min-height: 0;
+  overflow: hidden;
+
+  .ant-card-body {
+    padding: 8px;
+    overflow: auto; // 可滚动，方便切换会话
+  }
+
+  // 单个会话样式，支持切换选中
+  .ant-list-item {
+    align-items: flex-start;
+    padding: 12px;
+    border-block-end: 0 !important;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+
+    // hover 和选中态：蓝色边框 + 半透明蓝色背景
+    &:hover,
+    &.active {
+      border-color: rgba(73, 153, 255, 0.34);
+      background: rgba(31, 139, 255, 0.12);
+    }
+  }
+
+  // 会话标题
+  .ant-list-item-meta-title {
+    margin-bottom: 5px;
+
+    span:not(.ant-tag) {
+      color: #fff;
+    }
+  }
+
+  // 会话摘要，两行截断
+  .ant-list-item-meta-description {
+    color: #8fa8c4;
+
+    p {
+      display: -webkit-box;
+      margin: 5px 0 0;
+      overflow: hidden;
+      color: #b9cbe0;
+      line-height: 1.5;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+  }
+}
+
+/** .source-mark —— 资源类型图标（8px 圆角方块） */
+.source-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: #fff;
+  border-radius: 8px;
+}
+
+// ============================================================
+// 右侧内容预览
+// ============================================================
+
+/**
+ * .history-detail-card —— 右侧详情卡片
+ *   两行布局：头部信息 + 消息滚动列表
+ */
+.history-detail-card {
+  min-height: 0;
+  overflow: hidden;
+
+  .ant-card-body {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 16px;
+    padding: 18px;
+  }
+}
+
+/**
+ * .history-detail-head —— 详情头部
+ *   会话标题 + 资源标签 + 操作按钮
+ *   底部蓝色分割线
+ */
+.history-detail-head {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(73, 153, 255, 0.18);
+
+  h3 {
+    margin: 0 0 8px;
+    color: #fff;
+  }
+
+  .ant-typography {
+    color: @text-muted;
+  }
+}
+
+/** .history-message-list —— 消息滚动列表，垂直排列，可滚动 */
+.history-message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain; // 阻止滚动穿透
+}
+
+/**
+ * .history-message —— 单条历史消息条目
+ *   AI消息靠左（默认），用户消息靠右（align-self: flex-end）
+ */
+.history-message {
+  width: fit-content;
+  max-width: 78%;
+  padding: 12px 14px;
+  border: 1px solid rgba(73, 153, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(8, 24, 45, 0.86);
+
+  // 用户消息右对齐，绿色边框 + 绿色背景
+  &.user {
+    align-self: flex-end;
+    border-color: rgba(40, 216, 129, 0.28);
+    background: rgba(10, 70, 51, 0.84);
+  }
+
+  .ant-tag {
+    margin-bottom: 8px;
+  }
+
+  .ant-typography {
+    margin: 0 !important;
+    color: #eef8ff;
+    line-height: 1.72;
+    white-space: pre-line;
+  }
+}
+
+// ============================================================
+// 响应式布局
+// ============================================================
+
+/**
+ * ≤1060px 窄屏适配：
+ *   工具栏和详情头部改为纵向排列
+ *   双栏变单栏，会话列表限高 420px
+ *   搜索框和筛选器宽度 100%
+ */
+@media (max-width: 1060px) {
+  .chat-history-page {
+    height: auto;
+    min-height: calc(@content-height - 40px);
+    overflow: visible;
+  }
+
+  .history-toolbar,
+  .history-detail-head {
+    align-items: flex-start;
+    flex-direction: column; // 纵向排列
+  }
+
+  .history-layout {
+    grid-template-columns: 1fr; // 单栏布局
+    height: auto;
+    overflow: visible;
+  }
+
+  .history-list-card {
+    max-height: 420px; // 列表限高
+  }
+
+  .history-detail-card {
+    min-height: 520px;
+  }
+
+  .history-toolbar .ant-input-affix-wrapper,
+  .history-toolbar .ant-select {
+    width: 100%; // 筛选器宽度 100%
+  }
+}

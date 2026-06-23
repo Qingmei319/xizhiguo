@@ -1,0 +1,388 @@
+/**
+ * @file layout.less
+ * @description 全局布局样式
+ *   包含应用外壳、侧边栏、品牌区、菜单、用户卡片、顶部栏和内容区。
+ *   此文件定义了所有页面共用的骨架结构样式。
+ *
+ * 布局层级：
+ *   .app-shell → .app-sider + .app-header + .app-content
+ *   .app-content 根据路由切换三种模式：
+ *     - chat-content：聊天页（无内边距，背景透传）
+ *     - flush-content：铺满页面（基因、温室等，无内边距）
+ *     - 普通：20px 内边距，带渐变背景
+ */
+
+@import './variables.less';
+
+/** 整体应用外壳：控制主布局占满视窗 */
+.app-shell {
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+// ============================================================
+// 左侧侧边栏
+// ============================================================
+
+/**
+ * .app-sider —— 侧边栏主体
+ *   深色渐变背景 + 右侧蓝色光晕装饰线 + 折叠态适配
+ *   包含品牌区、菜单项和底部用户视觉区
+ */
+.app-sider {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  border-right: 1px solid rgba(73, 153, 255, 0.24);
+  background:
+    linear-gradient(180deg, rgba(4, 11, 23, 0.96), rgba(2, 8, 18, 0.98)),                   // 上下深色渐变
+    radial-gradient(circle at 18% 12%, rgba(31, 139, 255, 0.18), transparent 16rem) !important;  // 左上角蓝色光晕
+
+  // 侧边栏装饰线：多条渐变 + 底部蓝色光晕
+  &::after {
+    position: absolute;
+    inset: auto 14px 118px 14px;
+    height: 420px;
+    pointer-events: none;
+    content: '';
+    opacity: 0.28;
+    background:
+      linear-gradient(135deg, transparent 20%, rgba(53, 151, 255, 0.3) 20.5%, transparent 21%),
+      linear-gradient(160deg, transparent 28%, rgba(53, 151, 255, 0.22) 28.5%, transparent 29%),
+      radial-gradient(ellipse at bottom, rgba(31, 139, 255, 0.18), transparent 64%);
+  }
+
+  // —— 折叠态适配：侧边栏收窄后的样式调整 ——
+  &.ant-layout-sider-collapsed {
+    .brand {
+      justify-content: center;    // 折叠态品牌区居中
+      height: 78px;
+      padding: 12px 8px;
+    }
+
+    .brand-mark {
+      width: 48px;                // Logo 缩小
+      height: 48px;
+      border-radius: 4px;
+
+      img {
+        width: 42px;
+        height: 42px;
+      }
+    }
+
+    .side-menu {
+      padding: 14px 10px 0;      // 菜单内边距缩小
+    }
+
+    // 折叠态菜单项：居中图标，隐藏文字
+    .side-menu .ant-menu-item {
+      display: flex;
+      width: 52px;
+      height: 52px;
+      margin: 8px auto;
+      padding-inline: 0 !important;
+      align-items: center;
+      justify-content: center;
+      line-height: 52px;
+
+      .ant-menu-item-icon {
+        margin-inline-end: 0;
+        font-size: 20px;
+      }
+
+      .ant-menu-title-content {
+        display: none;            // 折叠态隐藏菜单文字
+      }
+    }
+
+    // 折叠态选中项高亮：白色文字 + 半透明白色背景
+    .side-menu .ant-menu-item-selected {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.16) !important;
+      box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.08);
+    }
+
+    // 折叠态用户卡片缩小
+    .user-card {
+      right: -10px;
+      bottom: 12px;
+      left: -10px;
+      height: 72px;
+    }
+  }
+}
+
+// ============================================================
+// 品牌区
+// ============================================================
+
+/**
+ * .brand —— 品牌区
+ *   侧边栏顶部 logo，包含品牌标记和文字。
+ *   .large 变体用于登录页大号展示。
+ */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 84px;
+  padding: 16px 18px;
+
+  h4 {
+    margin: 0;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  span {
+    color: rgba(235, 244, 255, 0.9);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  // 大号品牌区（登录页用）：无内边距，大 Logo
+  &.large {
+    height: auto;
+    padding: 0;
+    margin-bottom: 56px;
+
+    .brand-mark {
+      width: 58px;
+      height: 58px;
+      border-radius: @radius;
+    }
+  }
+}
+
+/** .brand-mark —— 品牌标记/Logo 容器 */
+.brand-mark {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  width: 38px;
+  height: 42px;
+  place-items: center;
+  color: @primary;
+  filter: drop-shadow(0 0 8px rgba(31, 139, 255, 0.58));  // Logo 蓝色投影
+
+  img {
+    display: block;
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    color: currentColor;
+  }
+}
+
+// ============================================================
+// 侧边栏菜单
+// ============================================================
+
+/**
+ * .side-menu —— 侧边栏菜单
+ *   透明背景，菜单项蓝色 hover 效果，选中态白底蓝光
+ */
+.side-menu {
+  padding: 10px 12px 0;
+  border-inline-end: 0 !important;     // 去掉 Ant Design 默认右侧边框
+  background: transparent !important;
+
+  // 菜单项默认样式：淡蓝文字，hover 变白+蓝色背景
+  .ant-menu-item {
+    height: 46px;
+    margin: 6px 0;
+    color: #d9e7f7;
+    font-size: 15px;
+    border-radius: @radius;
+    line-height: 46px;
+
+    &:hover {
+      color: #fff !important;
+      background: rgba(31, 139, 255, 0.12) !important;
+    }
+  }
+
+  // 选中菜单项：白色高亮文字 + 白-蓝渐变背景 + 蓝色发光
+  .ant-menu-item-selected {
+    color: #0b56c7;
+    background: linear-gradient(90deg, #ffffff, #e9f3ff) !important;
+    box-shadow: 0 0 12px rgba(31, 139, 255, 0.34);
+  }
+}
+
+// ============================================================
+// 侧边栏底部用户视觉区
+// ============================================================
+
+/**
+ * .user-card —— 侧边栏底部用户视觉区
+ *   当前主要展示透明人物图（screen 混合模式叠加），
+ *   不显示文字信息。人物图带渐变遮罩边缘和蓝色投影。
+ */
+.user-card {
+  position: absolute;
+  right: -4px;
+  bottom: 10px;
+  left: -4px;
+  height: 136px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;           // 不拦截点击事件
+
+  // 人物图片：screen 混合模式叠加 + 渐变遮罩边缘
+  > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: screen;       // 混合模式让人物图融入深色背景
+    opacity: 0.9;
+    filter: drop-shadow(0 0 10px rgba(31, 139, 255, 0.28));
+    mask-image:
+      linear-gradient(90deg, transparent 0, #000 12%, #000 88%, transparent 100%),    // 水平渐变遮罩
+      linear-gradient(180deg, transparent 0, #000 14%, #000 82%, transparent 100%);   // 垂直渐变遮罩
+    mask-composite: intersect;
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent 0, #000 12%, #000 88%, transparent 100%),
+      linear-gradient(180deg, transparent 0, #000 14%, #000 82%, transparent 100%);
+    -webkit-mask-composite: source-in;
+  }
+
+  // 隐藏用户文字信息
+  .user-meta {
+    display: none;
+  }
+}
+
+/** .online-dot —— 在线状态指示点（绿色） */
+.online-dot {
+  color: @success !important;
+}
+
+// ============================================================
+// 顶部栏
+// ============================================================
+
+/**
+ * .app-header —— 顶部导航栏
+ *   sticky 定位 + 深色半透明背景 + 模糊滤镜
+ *   包含折叠按钮、面包屑和右侧用户入口
+ */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: @header-height;
+  padding: 0 22px 0 28px;
+  border-bottom: 1px solid rgba(73, 153, 255, 0.18);
+  background: rgba(3, 10, 22, 0.86) !important;
+  backdrop-filter: blur(14px);     // 模糊滤镜，让内容透出玻璃质感
+}
+
+/** .header-left —— 顶部栏左侧（折叠按钮 + 面包屑） */
+.header-left {
+  min-width: 0;
+}
+
+/** .sider-toggle —— 侧边栏折叠切换按钮 */
+.sider-toggle {
+  width: 42px;
+  height: 42px;
+  color: #eaf4ff;
+  font-size: 20px;
+  border-radius: @radius;
+
+  &:hover {
+    color: #fff !important;
+    background: rgba(31, 139, 255, 0.14) !important;
+  }
+}
+
+/** .breadcrumb —— 面包屑导航文字 */
+.breadcrumb {
+  color: #eaf4ff;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+/**
+ * .header-user —— 顶部栏右侧用户入口
+ *   显示用户名（白色粗体）和在线状态（绿色小字）
+ */
+.header-user {
+  cursor: pointer;
+
+  span {
+    display: grid;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  small {
+    color: @success;
+    font-size: 12px;
+    font-weight: 400;
+  }
+}
+
+// ============================================================
+// 主内容区
+// ============================================================
+
+/**
+ * .app-content —— 主内容区（普通模式）
+ *   20px 内边距 + 深色渐变背景 + 右上角蓝色光晕
+ *   根据路由切换为 chat-content 或 flush-content
+ */
+.app-content {
+  height: @content-height;
+  min-height: @content-height;
+  padding: 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background:
+    linear-gradient(rgba(4, 13, 25, 0.72), rgba(4, 13, 25, 0.92)),                   // 上下深色渐变
+    radial-gradient(circle at top right, rgba(31, 139, 255, 0.16), transparent 24rem); // 右上角蓝色光晕
+}
+
+/**
+ * .app-content.chat-content —— 聊天页内容区
+ *   无内边距，隐藏溢出（聊天页有自己的内部布局）
+ */
+.app-content.chat-content {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+/**
+ * .app-shell.chat-shell —— 聊天页外壳
+ *   背景图在 .chat-page 中设置，这里只让内容区背景透传
+ */
+.app-shell.chat-shell {
+  // 侧边栏保持原样，背景图只在内容区透出
+  .app-content.chat-content {
+    background: transparent;
+  }
+}
+
+/**
+ * .app-content.flush-content —— 铺满内容区
+ *   工作台、基因页、温室页等使用，无内边距，隐藏溢出
+ */
+.app-content.flush-content {
+  height: @content-height;
+  padding: 0;
+  overflow: hidden;
+}

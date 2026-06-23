@@ -1,0 +1,468 @@
+/**
+ * @file workspace/index.less
+ * @description 工作台页样式
+ *   包含粒子流背景、品牌 Orb、Hero 区、快捷入口卡片、
+ *   对话态消息流、输入栏和响应式适配。
+ *   工作台是平台的核心入口页，欢迎态展示品牌信息和 4 个快捷入口，
+ *   对话态切换为消息流 + 输入栏布局。
+ *
+ * 布局结构（欢迎态）：
+ *   .workspace-page → .workspace-stage（居中内容）
+ *   ├── .workspace-orb（品牌 Orb：蓝色发光圆球）
+ *   ├── .workspace-hero（标题 + 描述）
+ *   ├── .workspace-card-grid（2×2 快捷入口卡片）
+ *   └─ .workspace-disclaimer（免责声明）
+ *
+ * 布局结构（对话态）：
+ *   .workspace-page.is-chatting → .workspace-stage
+ *   ├── .workspace-conversation → .conversation-head + .workspace-transcript
+ *   ├── .workspace-chatbar（输入面板）
+ *   └─ .workspace-disclaimer
+ */
+
+@import '../../styles/variables.less';
+
+// ============================================================
+// 页面主体
+// ============================================================
+
+/**
+ * .workspace-page —— 工作台页面
+ *   深色渐变背景 + 多层径向蓝色光晕
+ *   粒子流背景绝对定位铺满（z-index: 0）
+ */
+.workspace-page {
+  position: relative;
+  height: @content-height;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(31, 139, 255, 0.24), transparent 11rem),     // 顶部中央蓝色光晕
+    radial-gradient(circle at 10% 72%, rgba(31, 139, 255, 0.2), transparent 20rem),      // 左下角蓝色光晕
+    radial-gradient(circle at 90% 66%, rgba(36, 202, 255, 0.18), transparent 22rem),     // 右下角青色光晕
+    linear-gradient(180deg, rgba(2, 8, 18, 0.32), rgba(2, 8, 18, 0.82)),                // 上下深色渐变
+    linear-gradient(140deg, #01050d 0%, #031426 52%, #01050d 100%);                       // 基底渐变
+
+  // 粒子流背景组件绝对定位铺满
+  .particle-flow-background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;       // 不拦截点击事件
+  }
+}
+
+/**
+ * .workspace-stage —— 内容舞台
+ *   居中排列，宽度限 920px
+ *   六行网格布局：Orb → Hero → 卡片网格 → 消息区 → 输入栏 → 免责声明
+ */
+.workspace-stage {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto auto;
+  justify-items: center;
+  width: min(920px, calc(100vw - 340px));
+  height: 100%;
+  margin: 0 auto;
+  padding: 36px 0 24px;
+}
+
+/**
+ * .workspace-orb —— 品牌 Orb（蓝色发光圆球）
+ *   94px 圆形，多层径向渐变 + 蓝色内外发光
+ *   中央显示品牌图标
+ */
+.workspace-orb {
+  position: relative;
+  display: grid;
+  width: 94px;
+  height: 94px;
+  place-items: center;
+  color: #dff8ff;
+  font-size: 40px;
+  border: 1px solid rgba(92, 185, 255, 0.5);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(188, 245, 255, 0.98), rgba(31, 139, 255, 0.72) 18%, rgba(31, 139, 255, 0.18) 46%, transparent 62%),  // 多层径向渐变
+    rgba(7, 24, 48, 0.32);
+  box-shadow: 0 0 32px rgba(31, 139, 255, 0.62), 0 0 78px rgba(31, 139, 255, 0.34);       // 近+远蓝色发光
+}
+
+/**
+ * .workspace-hero —— Hero 区
+ *   居中对齐，大标题 + 蓝色文字发光 + 描述文字
+ */
+.workspace-hero {
+  margin: 18px 0 26px;
+  text-align: center;
+
+  h1 {
+    margin: 0 0 10px;
+    color: #fff !important;
+    font-size: 36px !important;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-shadow: 0 0 24px rgba(31, 139, 255, 0.34);  // 蓝色文字发光
+
+    .anticon {
+      font-size: 32px !important;
+      color: #fff !important;
+    }
+  }
+
+  .ant-typography {
+    color: rgba(224, 236, 250, 0.78);
+    font-size: 15px;
+  }
+}
+
+/**
+ * .workspace-card-grid —— 快捷入口卡片网格
+ *   2×2 布局，宽度限 760px
+ */
+.workspace-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 22px;
+  width: 100%;
+  max-width: 760px;
+}
+
+/**
+ * .workspace-action-card —— 快捷入口卡片
+ *   三列内部布局：图标(52px) + 标题描述 + 箭头(34px)
+ *   蓝色边框 + 内外发光 + hover 上浮 2px
+ */
+.workspace-action-card {
+  min-height: 128px;
+  cursor: pointer;
+  border: 1px solid rgba(75, 160, 255, 0.72);
+  border-radius: @radius;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(67, 157, 255, 0.24), transparent 38%),        // 左上角光晕
+    linear-gradient(135deg, rgba(12, 34, 60, 0.86), rgba(6, 18, 34, 0.88)) !important;    // 深色渐变
+  box-shadow: 0 0 22px rgba(31, 139, 255, 0.34), inset 0 0 28px rgba(31, 139, 255, 0.12);
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+
+  // hover：边框变亮 + 发光增强 + 上浮 2px
+  &:hover {
+    border-color: rgba(143, 231, 255, 0.95);
+    box-shadow: 0 0 34px rgba(31, 139, 255, 0.48), inset 0 0 32px rgba(31, 139, 255, 0.18);
+    transform: translateY(-2px);
+  }
+
+  // 卡片内部：图标 + 标题描述 + 箭头
+  .ant-card-body {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) 34px;
+    gap: 16px;
+    align-items: center;
+    height: 100%;
+    padding: 22px 18px;
+  }
+
+  h3 {
+    margin: 0 0 7px;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+    color: rgba(222, 234, 248, 0.68);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+}
+
+/**
+ * .workspace-card-icon —— 卡片图标
+ *   50px 圆角方块，彩色背景 + 白色图标
+ */
+.workspace-card-icon {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  place-items: center;
+  font-size: 24px;
+  border: none;
+  border-radius: @radius;
+  background: var(--workspace-icon-bg, #1f8bff);     // 填充色背景
+  color: #fff;                                        // 白色图标
+}
+
+/** .workspace-card-arrow / .workspace-plus —— 箭头和新建按钮 */
+.workspace-card-arrow,
+.workspace-plus {
+  color: #dfefff;
+  border-color: rgba(216, 235, 255, 0.48);
+  background: rgba(8, 20, 40, 0.42);
+}
+
+// ============================================================
+// 对话态布局
+// ============================================================
+
+/**
+ * .workspace-conversation —— 对话态容器
+ *   两行布局：头部信息栏 + 消息滚动列表
+ */
+.workspace-conversation {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: 100%;
+  min-height: 0;
+  padding-top: 4px;
+}
+
+/**
+ * .conversation-head —— 对话头部信息栏
+ *   会话标题 + 来源标签，最大宽度 860px
+ */
+.conversation-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(75, 160, 255, 0.32);
+  border-radius: @radius;
+  background: rgba(5, 17, 33, 0.68);
+  box-shadow: 0 0 24px rgba(31, 139, 255, 0.16);
+
+  h3 {
+    margin: 0 0 2px;
+    color: #fff;
+  }
+
+  .ant-typography {
+    color: rgba(224, 236, 250, 0.68);
+  }
+}
+
+/**
+ * .workspace-transcript —— 消息滚动列表
+ *   最大高度根据视窗计算，可滚动
+ */
+.workspace-transcript {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  width: 100%;
+  min-height: 0;
+  max-height: calc(@content-height - 250px);
+  padding: 0 8px 8px;
+  overflow: auto;
+}
+
+/**
+ * .workspace-message —— 消息气泡：助手靠左，用户靠右
+ *   助手：头像(38px) + 气泡（左→右）
+ *   用户：气泡 + 头像（右→左），绿色背景
+ */
+.workspace-message {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+
+  &.user {
+    grid-template-columns: minmax(0, 1fr) 38px;
+
+    .workspace-message-avatar {
+      order: 2;
+      background: @success;             // 绿色头像背景
+    }
+
+    .workspace-bubble {
+      justify-self: end;                // 气泡靠右
+      border-color: rgba(40, 216, 129, 0.28);
+      background: rgba(10, 40, 31, 0.78);  // 绿色背景
+    }
+  }
+}
+
+/** .workspace-message-avatar —— 消息头像（蓝色半透明背景 + 发光） */
+.workspace-message-avatar {
+  background: rgba(31, 139, 255, 0.22);
+  box-shadow: 0 0 18px rgba(31, 139, 255, 0.3);
+}
+
+/**
+ * .workspace-bubble —— 消息气泡
+ *   蓝色边框 + 深色背景 + 最大宽度 720px
+ */
+.workspace-bubble {
+  width: fit-content;
+  max-width: min(720px, 100%);
+  padding: 14px 16px;
+  border: 1px solid rgba(75, 160, 255, 0.34);
+  border-radius: @radius;
+  background: rgba(5, 17, 33, 0.82);
+  box-shadow: 0 0 20px rgba(31, 139, 255, 0.12);
+
+  .ant-typography {
+    margin-bottom: 0;
+    color: rgba(235, 244, 255, 0.9);
+    line-height: 1.75;
+  }
+}
+
+/** .workspace-message-name —— 消息发送者名称（青色小字） */
+.workspace-message-name {
+  display: block;
+  margin-bottom: 8px;
+  color: #8fe7ff !important;
+  font-size: 12px;
+}
+
+/**
+ * .workspace-answer-sections —— 答案分段区域
+ *   AI 回复按标题分段展示
+ */
+.workspace-answer-sections {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+
+  div {
+    padding: 10px 12px;
+    border: 1px solid rgba(75, 160, 255, 0.18);
+    border-radius: @radius;
+    background: rgba(7, 22, 42, 0.64);
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #fff;
+  }
+
+  p {
+    margin: 0;
+    color: rgba(224, 236, 250, 0.72);
+    line-height: 1.65;
+  }
+}
+
+/**
+ * .workspace-chatbar —— 输入面板
+ *   三列布局：新建按钮(48px) + 输入框 + 发送按钮(54px)
+ *   圆角胶囊形状（border-radius: 28px）
+ *   蓝色边框 + 外部蓝色发光 + 内部蓝色光晕
+ */
+.workspace-chatbar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  width: min(900px, 76vw);
+  max-width: 900px;
+  margin-top: auto;                  // 靠底部
+  padding: 14px 18px 18px;
+  border: 1px solid rgba(54, 153, 255, 0.86);
+  border-radius: 34px;
+  background: rgba(5, 18, 34, 0.84);
+  box-shadow: 0 0 30px rgba(31, 139, 255, 0.52), inset 0 0 24px rgba(31, 139, 255, 0.12);
+  backdrop-filter: blur(14px);
+
+  // 输入框样式：深色背景 + 蓝色边框 + 内阴影
+  textarea.ant-input {
+    min-height: 48px !important;
+    padding: 12px 18px;
+    color: #eaf4ff;
+    font-size: 16px;
+    border: 1px solid rgba(117, 153, 192, 0.46);
+    border-radius: 25px;
+    background: rgba(8, 22, 40, 0.92);
+    resize: none;
+  }
+}
+
+.workspace-chatbar-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+
+  textarea.ant-input {
+    min-height: 48px !important;
+  }
+
+  .workspace-plus,
+  .workspace-send {
+    flex: 0 0 auto;
+  }
+
+  textarea.ant-input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+/** .workspace-plus —— 新建对话按钮（42px） */
+.workspace-plus {
+  width: 50px !important;
+  height: 50px !important;
+  font-size: 23px;
+  border-color: rgba(216, 235, 255, 0.52);
+  background: rgba(8, 20, 40, 0.52);
+}
+
+/** .workspace-send —— 发送按钮（46px + 强蓝色发光） */
+.workspace-send {
+  width: 50px !important;
+  height: 50px !important;
+  font-size: 23px;
+  box-shadow: 0 0 28px rgba(31, 139, 255, 0.82);
+}
+
+/** .workspace-disclaimer —— 免责声明（淡灰色小文字） */
+.workspace-disclaimer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 20px;
+  color: rgba(218, 227, 239, 0.46);
+  font-size: 13px;
+}
+
+// ============================================================
+// 对话态切换样式
+// ============================================================
+
+/**
+ * .workspace-page.is-chatting —— 对话态切换
+ *   内容舞台改为三行纵向排列（消息区 + 输入栏 + 免责声明）
+ *   宽度扩大到 940px
+ */
+.workspace-page.is-chatting {
+  .workspace-stage {
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    width: min(940px, calc(100vw - 320px));
+    padding-top: 24px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .workspace-chatbar {
+    width: min(900px, 88vw);
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace-chatbar {
+    width: min(900px, 88vw);
+  }
+
+  .workspace-chatbar-row {
+    gap: 12px;
+  }
+}

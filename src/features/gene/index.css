@@ -1,0 +1,450 @@
+/**
+ * @file gene/index.less
+ * @description 基因测序页面样式
+ *   本文件实现左右布局与欢迎态/对话态切换、快捷提问卡片、
+ *   消息列表、输入面板及移动端响应式布局。
+ *   页面包含两种状态：欢迎态（默认展示功能和快捷入口）和对话态（消息区 + 输入面板）
+ *
+ * 布局结构（欢迎态）：
+ *   .gene-page > .gene-workspace > .gene-workspace-inner
+ *     ├── .gene-welcome（欢迎卡片：Logo + 文案）
+ *     ├── .gene-action-grid（2×2 快捷卡片）
+ *     ├── .gene-input-panel（底部输入区：附件 + 输入框 + 发送）
+ *     └── .gene-disclaimer（免责声明）
+ *
+ * 布局结构（对话态）：
+ *   .gene-page.is-chatting > .gene-workspace-inner
+ *     ├── .gene-conversation > .gene-conversation-head + .gene-transcript
+ *     ├── .gene-input-panel
+ *     └── .gene-disclaimer
+ */
+/**
+ * @file variables.less
+ * @description 全局样式变量与 Mixin 定义
+ *   定义整个项目的颜色体系、尺寸常量、背景图片 URL 和可复用的样式混合。
+ *   所有 Less 文件通过 @import 引入此文件获取统一设计 token。
+ *
+ * 变量分类：
+ *   - 主题色系：主色调、成功色、警告色、危险色、青色
+ *   - 文字颜色：主要文字、弱化文字
+ *   - 面板样式：背景色、边框色
+ *   - 布局常量：圆角半径、顶部栏高度、内容区高度
+ *   - 页面背景图片：登录页、农业场景、实验室、病害、温室
+ *
+ * Mixin：
+ *   - .glow-panel()：蓝色光晕面板效果（边框 + 渐变 + 阴影）
+ *   - .scene-overlay()：场景遮罩层（暗色渐变 + 子元素 z-index 提升）
+ */
+/** 主色调（蓝色）—— 全局按钮、链接、选中态的基础色 */
+/** 主色调柔和版（低透明度）—— 用于背景叠加、微弱高亮 */
+/** 成功/绿色 —— 数据增长、在线状态、正面指标 */
+/** 警告/橙色 —— 中等风险、提示信息 */
+/** 危险/红色 —— 高风险预警、删除操作 */
+/** 青色 —— 传感器图标、高亮数据点 */
+/** 主要文字色 —— 页面正文、标题 */
+/** 次要/弱化文字色 —— 描述、副标题、辅助信息 */
+/** 面板背景色 —— 通用卡片、侧栏面板 */
+/** 面板边框色 —— 通用面板蓝色发光边框 */
+/** 统一圆角半径 —— 卡片、按钮、输入框等 */
+/** 顶部导航栏高度（72px） */
+/** 主内容区高度 = 视窗高度 - 顶部栏高度 */
+/** 农业场景背景 —— 数据总览 Hero、聊天页等 */
+/** 登录页背景 —— 登录页全屏背景图 */
+/** 实验室场景背景 —— 基因智查页 */
+/** 病害场景背景 —— 病虫害 Atlas 页 */
+/** 温室场景背景 —— 智慧温室页 */
+/**
+ * .glow-panel() Mixin —— 发光面板效果
+ *   为卡片/面板注入蓝色光晕视觉：蓝色边框 + 径向渐变背景 + 内外阴影
+ *   使用场景：数据总览卡片、温室面板、侧栏信息区等
+ */
+/**
+ * .scene-overlay() Mixin —— 场景遮罩层
+ *   在背景图上叠加暗色渐变和蓝色光晕，并将子元素提升到遮罩上方
+ *   使用场景：聊天页、基因页、数据总览 Hero 等有背景图的页面
+ */
+/**
+ * .gene-page —— 基因测序页面
+ *   撑满高度，清除默认内边距和边框
+ */
+.gene-page {
+  height: calc(100vh - 72px);
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+/**
+ * .gene-workspace —— 主工作区底层
+ *   ::after 提供水平渐变遮罩 + 底部蓝色光晕
+ *   当前仅靠颜色来区分层次
+ */
+.gene-workspace {
+  display: block;
+}
+.gene-workspace::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background: linear-gradient(90deg, rgba(3, 10, 22, 0.28), rgba(3, 10, 22, 0.02) 44%, rgba(3, 10, 22, 0.42)), radial-gradient(circle at 52% 78%, rgba(31, 139, 255, 0.28), transparent 22rem);
+}
+/**
+ * .gene-workspace-inner —— 工作区内容层
+ *   欢迎态居中，对话态切换为消息区 + 输入面板布局
+ */
+.gene-workspace-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 26px;
+  place-items: center;
+  align-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 36px 48px;
+}
+/**
+ * .gene-page.is-chatting —— 对话态布局切换
+ *   切换为纵向排列：消息区 + 输入区 + 免责声明
+ */
+.gene-page.is-chatting .gene-workspace-inner {
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  align-content: stretch;
+  gap: 16px;
+  padding: 24px 48px;
+}
+/**
+ * .gene-welcome —— 欢迎卡片
+ *   蓝色渐变卡片，展示 DNA 识别图标/校徽/Logo 和说明文案
+ *   最大宽度 900px，带阴影 + 蓝色光晕边框
+ */
+.gene-welcome {
+  width: min(900px, 76vw) !important;
+  max-width: 900px;
+  margin: 0 !important;
+  border-radius: 8px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22), 0 0 28px rgba(31, 139, 255, 0.18);
+}
+.gene-welcome.assistant-welcome .ant-card-body {
+  display: grid !important;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+  min-height: 164px;
+  padding: 24px 30px;
+}
+.gene-welcome h2 {
+  margin: 0 0 10px;
+  color: #07111f;
+  font-size: 25px;
+  line-height: 1.25;
+}
+.gene-welcome .ant-typography {
+  margin-bottom: 8px;
+  color: #22334a;
+  line-height: 1.7;
+}
+/** .gene-emblem —— 页面校徽/Logo，96px 大方块，蓝色边框 */
+.gene-emblem {
+  width: 96px !important;
+  height: 96px !important;
+  font-size: 23px !important;
+  line-height: 86px !important;
+  color: #0b4f91;
+  border-color: #0b4f91;
+}
+/**
+ * .gene-action-grid —— 快捷提问卡片网格
+ *   四个快捷入口，2×2 布局，最大宽度 900px
+ */
+.gene-action-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 18px 22px;
+  width: min(900px, 76vw);
+  max-width: 900px;
+}
+/**
+ * .gene-action-card —— 快捷查询卡片
+ *   108px 固定高度，卡片内部分布：图标(58px) + 文字描述 + 箭头(40px)
+ *   hover 上浮 2px + 边框变亮 + 阴影增强
+ */
+.gene-action-card {
+  width: 100%;
+  height: 108px;
+  min-height: 108px;
+  cursor: pointer;
+  border: 1px solid rgba(53, 151, 255, 0.66);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(12, 34, 60, 0.9), rgba(6, 18, 34, 0.84)) !important;
+  box-shadow: 0 0 24px rgba(31, 139, 255, 0.2), inset 0 0 30px rgba(31, 139, 255, 0.08);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.gene-action-card:hover {
+  border-color: #5db6ff;
+  box-shadow: 0 0 34px rgba(31, 139, 255, 0.36), inset 0 0 30px rgba(31, 139, 255, 0.12);
+  transform: translateY(-2px);
+}
+.gene-action-card .ant-card-body {
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) 40px;
+  gap: 16px;
+  align-items: center;
+  height: 100%;
+  padding: 16px 18px !important;
+}
+.gene-action-card h4 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 17px;
+  line-height: 1.25;
+}
+.gene-action-card p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: rgba(221, 233, 248, 0.74);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+/**
+ * .gene-action-icon —— 快捷卡片中的圆形图标
+ *   54px 圆形，带渐变背景 drop-shadow 光晕
+ */
+.gene-action-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  font-size: 27px;
+  border: 1px solid;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.22), rgba(31, 139, 255, 0.12));
+  box-shadow: 0 0 22px currentColor;
+}
+/** .gene-action-arrow —— 快捷卡片中的箭头按钮，半透明边框 + 深色背景 */
+.gene-action-arrow {
+  color: #dfefff;
+  border-color: rgba(216, 235, 255, 0.58);
+  background: rgba(8, 20, 40, 0.42);
+}
+/**
+ * .gene-input-panel —— 底部输入面板
+ *   三列布局：附件按钮(56px) + 输入框 + 发送按钮(62px)
+ *   圆角胶囊形状（border-radius: 34px）
+ *   蓝色边框 + 外部蓝色光晕 + 内部蓝色光晕 + 模糊背景
+ */
+.gene-input-panel {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 62px;
+  gap: 16px;
+  align-items: center;
+  width: min(900px, 76vw);
+  max-width: 900px;
+  margin-top: 82px;
+  padding: 14px 18px;
+  border: 1px solid rgba(54, 153, 255, 0.86);
+  border-radius: 34px;
+  background: rgba(5, 18, 34, 0.84);
+  box-shadow: 0 0 30px rgba(31, 139, 255, 0.52), inset 0 0 24px rgba(31, 139, 255, 0.12);
+  backdrop-filter: blur(14px);
+}
+.gene-input-panel .ant-input,
+.gene-input-panel textarea.ant-input {
+  min-height: 48px !important;
+  padding: 12px 18px;
+  color: #eaf4ff;
+  font-size: 16px;
+  border-color: rgba(117, 153, 192, 0.46);
+  border-radius: 25px;
+  background: rgba(8, 22, 40, 0.92);
+  resize: none;
+}
+.gene-input-panel .ant-input::placeholder,
+.gene-input-panel textarea.ant-input::placeholder {
+  color: rgba(219, 230, 245, 0.54);
+}
+/** .gene-attach-btn / .gene-send-btn —— 附件和发送按钮，50px 圆形按钮 */
+.gene-attach-btn,
+.gene-send-btn {
+  width: 50px !important;
+  height: 50px !important;
+  font-size: 23px;
+}
+/** .gene-attach-btn —— 附件按钮，半透明边框 + 深色背景 */
+.gene-attach-btn {
+  color: #dfefff;
+  border-color: rgba(216, 235, 255, 0.52);
+  background: rgba(8, 20, 40, 0.52);
+}
+/** .gene-send-btn —— 发送按钮（蓝色主题） */
+.gene-send-btn {
+  box-shadow: 0 0 28px rgba(31, 139, 255, 0.82);
+}
+/** .gene-disclaimer —— 免责声明，浅色小字 */
+.gene-disclaimer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: rgba(218, 227, 239, 0.64);
+  font-size: 14px;
+}
+/**
+ * .gene-conversation —— 对话态容器
+ *   两行布局：头部信息栏 + 消息滚动列表
+ */
+.gene-conversation {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(980px, 86vw);
+  min-height: 0;
+}
+/**
+ * .gene-conversation-head —— 对话头部信息栏
+ *   会话标题 + 资源标签，蓝色边框头部面板
+ */
+.gene-conversation-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(75, 160, 255, 0.32);
+  border-radius: 8px;
+  background: rgba(5, 17, 33, 0.68);
+  box-shadow: 0 0 24px rgba(31, 139, 255, 0.16);
+}
+.gene-conversation-head h3 {
+  margin: 0 0 2px;
+  color: #fff;
+}
+.gene-conversation-head .ant-typography {
+  color: rgba(224, 236, 250, 0.68);
+}
+/**
+ * .gene-transcript —— 消息滚动列表
+ *   自适应高度填充剩余空间，可滚动
+ */
+.gene-transcript {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-height: 0;
+  max-height: calc(calc(100vh - 72px) - 250px);
+  padding: 0 8px 8px;
+  overflow: auto;
+}
+/**
+ * .gene-message —— 消息条目（区分 AI 和用户）
+ *   AI 消息：头像左 + 内容右
+ *   用户消息：内容左 + 头像右，绿色主题
+ */
+.gene-message {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.gene-message.user {
+  grid-template-columns: minmax(0, 1fr) 38px;
+}
+.gene-message.user .gene-message-avatar {
+  order: 2;
+  background: #28d881;
+}
+.gene-message.user .gene-bubble {
+  justify-self: end;
+  border-color: rgba(40, 216, 129, 0.28);
+  background: rgba(10, 40, 31, 0.78);
+}
+/** .gene-message-avatar —— 消息头像，蓝色半透明圆形 + 发光 */
+.gene-message-avatar {
+  background: rgba(31, 139, 255, 0.22);
+  box-shadow: 0 0 18px rgba(31, 139, 255, 0.3);
+}
+/**
+ * .gene-bubble —— 消息气泡
+ *   蓝色边框 + 深色背景 + 最大宽度 760px
+ */
+.gene-bubble {
+  width: fit-content;
+  max-width: min(760px, 100%);
+  padding: 14px 16px;
+  border: 1px solid rgba(75, 160, 255, 0.34);
+  border-radius: 8px;
+  background: rgba(5, 17, 33, 0.82);
+  box-shadow: 0 0 20px rgba(31, 139, 255, 0.12);
+}
+.gene-bubble .ant-typography {
+  margin-bottom: 0;
+  color: rgba(235, 244, 255, 0.9);
+  line-height: 1.75;
+}
+/** .gene-message-name —— 消息发送者名称，青色小字 */
+.gene-message-name {
+  display: block;
+  margin-bottom: 8px;
+  color: #8fe7ff !important;
+  font-size: 12px;
+}
+/**
+ * .gene-answer-sections —— 答案分段展示
+ *   AI 回复按多个段落分块展示
+ */
+.gene-answer-sections {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.gene-answer-sections div {
+  padding: 10px 12px;
+  border: 1px solid rgba(75, 160, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(7, 22, 42, 0.64);
+}
+.gene-answer-sections strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #fff;
+}
+.gene-answer-sections p {
+  margin: 0;
+  color: rgba(224, 236, 250, 0.72);
+  line-height: 1.65;
+}
+/** ≤1180px：缩小内边距，卡片宽度自适应 */
+@media (max-width: 1180px) {
+  .gene-workspace-inner {
+    padding: 28px;
+  }
+  .gene-welcome,
+  .gene-action-grid,
+  .gene-input-panel {
+    width: min(900px, 88vw) !important;
+  }
+}
+/** ≤760px：全部单列布局，快捷卡片垂直排列，输入区缩小 */
+@media (max-width: 760px) {
+  .gene-page {
+    height: auto;
+    min-height: calc(100vh - 72px);
+    overflow: auto;
+  }
+  .gene-welcome.assistant-welcome .ant-card-body,
+  .gene-action-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .gene-action-card {
+    height: auto;
+    min-height: 112px;
+  }
+  .gene-input-panel {
+    grid-template-columns: 48px minmax(0, 1fr) 52px;
+  }
+}

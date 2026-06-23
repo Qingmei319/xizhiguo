@@ -1,0 +1,40 @@
+{
+  "name": "guangxi-rag-knowledge-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.6.1",
+    "@react-three/fiber": "^8.17.10",
+    "antd": "^5.22.5",
+    "axios": "^1.7.9",
+    "echarts": "^5.5.1",
+    "echarts-for-react": "^3.0.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.1",
+    "three": "^0.171.0",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/babel__generator": "^7.27.0",
+    "@types/babel__template": "^7.4.4",
+    "@types/babel__traverse": "^7.28.0",
+    "@types/node": "^22.10.5",
+    "@types/prop-types": "^15.7.15",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@types/stats.js": "^0.17.4",
+    "@types/three": "^0.171.0",
+    "@types/webxr": "^0.5.22",
+    "@vitejs/plugin-react": "^4.3.4",
+    "less": "^4.6.6",
+    "typescript": "~5.6.3",
+    "vite": "^6.0.7"
+  }
+}

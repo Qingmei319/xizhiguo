@@ -1,0 +1,324 @@
+/**
+ * @file disease/index.less
+ * @description 果蔬品种展示页（Atlas）样式
+ *   包含页面背景、分类筛选、品种卡片网格、详情弹窗等。
+ *   这是病害品种浏览页，以 4/5/3 列网格展示品种卡片，点击打开详情弹窗。
+ *
+ * 布局结构：
+ *   .atlas-page
+ *   ├── .atlas-heading（标题区：眉标 + 标题 + 说明）
+ *   ├── .atlas-categories（分类筛选按钮组）
+ *   ├── .atlas-grid（品种卡片网格：4/5/3 列）
+ *   │   └── .atlas-card（品种卡片：图片 + 名称 + 描述）
+ *   └─ .atlas-modal-layer（详情弹窗遮罩层）
+ *       └── .atlas-modal（弹窗主体：图片 + 信息）
+ */
+
+@import '../../styles/variables.less';
+
+/** .app-content:has(.atlas-page) —— 当内容区包含 atlas 页面时去掉默认内边距 */
+.app-content:has(.atlas-page) {
+  padding: 0;
+}
+
+/**
+ * .atlas-page —— 品种展示页主体
+ *   深色渐变背景 + 网格装饰 + 多层径向光晕
+ *   最小高度占满内容区
+ */
+.atlas-page {
+  position: relative;
+  min-height: @content-height;
+  padding: 28px 34px 36px;
+  overflow: hidden;
+  color: @text-main;
+  background:
+    radial-gradient(circle at 82% 8%, rgba(0, 186, 255, 0.18), transparent 22rem),    // 右上角青色光晕
+    radial-gradient(circle at 18% 34%, rgba(31, 139, 255, 0.12), transparent 26rem),  // 左侧蓝色光晕
+    linear-gradient(180deg, rgba(3, 12, 27, 0.98), rgba(2, 8, 18, 0.98));             // 上下深色渐变
+
+  // ::before：网格装饰背景（64px × 64px 蓝色网格线）
+  &::before {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    content: '';
+    opacity: 0.42;
+    background:
+      linear-gradient(90deg, rgba(31, 139, 255, 0.08) 1px, transparent 1px),    // 垂直网格线
+      linear-gradient(rgba(31, 139, 255, 0.06) 1px, transparent 1px);           // 水平网格线
+    background-size: 64px 64px;
+    mask-image: linear-gradient(180deg, #000, transparent 78%);                  // 上半部分渐隐
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/**
+ * .atlas-heading —— 页面标题区
+ *   眉标 + 大标题 + 说明文字，最大宽度 980px
+ */
+.atlas-heading {
+  display: flex;
+  justify-content: space-between;
+  max-width: 980px;
+  margin-bottom: 18px;
+
+  h2 {
+    margin: 6px 0 6px;
+    color: #f2f8ff;
+    font-size: 30px;
+    letter-spacing: 0;
+  }
+
+  .ant-typography {
+    margin-bottom: 0;
+    color: #a8bdd6;
+    font-size: 15px;
+  }
+}
+
+/** .atlas-kicker —— 标题眉标（青色加粗小字） */
+.atlas-kicker {
+  color: #45c9ff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/**
+ * .atlas-categories —— 分类筛选按钮组
+ *   默认态深色背景 + 蓝色边框，选中态蓝白渐变 + 内外发光
+ */
+.atlas-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  .ant-btn {
+    height: 36px;
+    padding: 0 18px;
+    color: #c8dcf3;
+    border: 1px solid rgba(73, 153, 255, 0.32);
+    border-radius: 8px;
+    background: rgba(7, 24, 45, 0.66);
+    box-shadow: inset 0 0 12px rgba(31, 139, 255, 0.08);
+  }
+
+  // 选中态分类按钮：蓝白渐变 + 强发光
+  .ant-btn-primary {
+    color: #f3fbff;
+    border-color: rgba(68, 199, 255, 0.75);
+    background: linear-gradient(180deg, rgba(21, 112, 205, 0.92), rgba(7, 50, 105, 0.92));
+    box-shadow: 0 0 18px rgba(31, 139, 255, 0.34), inset 0 0 16px rgba(84, 202, 255, 0.18);
+  }
+}
+
+/**
+ * .atlas-grid —— 品种卡片网格
+ *   默认 4 列（≥210px），大屏 5 列，中屏 3 列
+ */
+.atlas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(210px, 1fr));
+  gap: 20px;
+  max-width: 1370px;
+}
+
+/**
+ * .atlas-card —— 品种卡片
+ *   图片区 188px + 内容区自适应
+ *   hover 上浮 5px + 边框变亮 + 图片放大 6%
+ */
+.atlas-card {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  border: 1px solid rgba(70, 166, 255, 0.36);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(12, 42, 72, 0.58), rgba(5, 18, 36, 0.74)),    // 上下渐变
+    rgba(6, 24, 45, 0.64);                                                        // 深色基底
+  box-shadow: inset 0 0 22px rgba(31, 139, 255, 0.1), 0 12px 34px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px);
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+
+  // hover：边框变亮 + 发光增强 + 上浮 5px + 图片放大
+  &:hover {
+    border-color: rgba(78, 195, 255, 0.9);
+    box-shadow: inset 0 0 24px rgba(50, 176, 255, 0.18), 0 18px 42px rgba(0, 126, 255, 0.22);
+    transform: translateY(-5px);
+
+    img {
+      transform: scale(1.06);      // 图片放大 6%
+    }
+  }
+}
+
+/** .atlas-card-image —— 品种卡片图片区（188px 高度，cover 适配） */
+.atlas-card-image {
+  display: block;
+  height: 188px;
+  overflow: hidden;
+  background: rgba(5, 18, 34, 0.8);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 240ms ease;
+  }
+}
+
+/**
+ * .atlas-card-body —— 品种卡片内容区
+ *   品种名称（粗体 18px） + 描述文字（两行截断）
+ */
+.atlas-card-body {
+  display: grid;
+  gap: 8px;
+  min-height: 120px;
+  padding: 16px 16px 18px;
+
+  // 品种名称：单行省略
+  strong {
+    overflow: hidden;
+    color: #f4faff;
+    font-size: 18px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // 描述文字：最多两行截断（-webkit-line-clamp）
+  span {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #aebfd6;
+    font-size: 14px;
+    line-height: 1.65;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+// ============================================================
+// 品种详情弹窗
+// ============================================================
+
+/** .atlas-modal-layer —— 弹窗遮罩层（半透明深色 + 模糊） */
+.atlas-modal-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 40px;
+  background: rgba(1, 8, 18, 0.58);
+  backdrop-filter: blur(8px);
+}
+
+/**
+ * .atlas-modal —— 弹窗主体
+ *   左侧图片 + 右侧信息，两列布局
+ *   蓝色边框 + 内外阴影 + 模糊滤镜
+ */
+.atlas-modal {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(360px, 0.92fr) minmax(360px, 1fr);
+  gap: 26px;
+  width: min(980px, 84vw);
+  min-height: 430px;
+  padding: 22px;
+  border: 1px solid rgba(91, 198, 255, 0.58);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgba(10, 38, 68, 0.82), rgba(4, 16, 34, 0.92)),
+    rgba(4, 18, 35, 0.78);
+  box-shadow: inset 0 0 30px rgba(64, 190, 255, 0.12), 0 28px 90px rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(22px);
+}
+
+/** .atlas-modal-close —— 弹窗关闭按钮（右上角绝对定位） */
+.atlas-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  color: #d6ecff !important;
+  border: 1px solid rgba(115, 198, 255, 0.28);
+  background: rgba(7, 25, 48, 0.72);
+}
+
+/** .atlas-modal-image —— 弹窗图片区（386px 最小高度，cover 适配） */
+.atlas-modal-image {
+  min-height: 386px;
+  overflow: hidden;
+  border: 1px solid rgba(74, 169, 255, 0.28);
+  border-radius: 10px;
+  background: rgba(4, 16, 30, 0.84);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+/**
+ * .atlas-modal-content —— 弹窗内容区
+ *   居中对齐，大标题 + 描述文字
+ */
+.atlas-modal-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 26px 22px 24px 0;
+
+  h3 {
+    margin: 8px 0 18px;
+    color: #f5fbff;
+    font-size: 30px;
+    letter-spacing: 0;
+  }
+
+  .ant-typography {
+    color: #c1d4eb;
+    font-size: 16px;
+    line-height: 1.9;
+  }
+}
+
+/** .atlas-modal-label —— 弹窗标签（青色加粗） */
+.atlas-modal-label {
+  color: #4dd2ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+// ============================================================
+// 响应式适配
+// ============================================================
+
+/** ≥1740px 大屏：5 列网格 */
+@media (min-width: 1740px) {
+  .atlas-grid {
+    grid-template-columns: repeat(5, minmax(210px, 1fr));
+  }
+}
+
+/** ≤1280px 中屏：3 列网格 */
+@media (max-width: 1280px) {
+  .atlas-grid {
+    grid-template-columns: repeat(3, minmax(210px, 1fr));
+  }
+}

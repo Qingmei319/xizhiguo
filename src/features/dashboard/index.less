@@ -1,0 +1,1003 @@
+/**
+ * @file dashboard/index.less
+ * @description 数据总览页样式
+ *   包含 Hero 区、指标卡片、趋势图表、病虫害预警、知识领域饼图、
+ *   服务覆盖地图和品种排行等所有 dashboard 组件样式。
+ *   这是样式量最大的功能页，包含多个复杂子组件。
+ *
+ * 布局结构：
+ *   .dashboard-page
+ *   ├── .dashboard-hero（顶部 Hero：背景图 + 概览统计）
+ *   ├── .dashboard-grid（中部双栏：趋势图 + 预警列表）
+ *   ├── .dashboard-bottom-grid（底部三卡：饼图 + 地图 + 排行）
+ *   └─ 指标卡片行（4 张 MetricCard）
+ *
+ * 子模块样式：
+ *   - Hero 区：背景图 + 网格装饰 + 扫光线 + 状态胶囊 + 概览统计
+ *   - 趋势图表：时间范围切换器 + ECharts 图表
+ *   - 预警列表：5 行紧凑列表 + 实时状态点 + 危险/警告图标
+ *   - 知识领域饼图：ECharts 环形图 + 右侧图例列表
+ *   - 服务覆盖地图：SVG 世界地图 + 热力点 + 扫描线 + 地区列表
+ *   - 品种排行：进度条排名列表 + 排行徽章 + 趋势标记
+ */
+
+@import '../../styles/variables.less';
+
+/** .dashboard-page —— 数据总览页面：整体 18px 间距 */
+.dashboard-page {
+  gap: 18px;
+}
+
+// ============================================================
+// 顶部 Hero 区
+// ============================================================
+
+/**
+ * .dashboard-hero —— 顶部 Hero 区
+ *   两栏布局（1.35fr + 0.95fr）：左侧文案 + 右侧概览统计
+ *   农业背景图 + 暗色遮罩 + 网格装饰 + 扫光线 + 底部光晕
+ */
+.dashboard-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.95fr);  // 左宽右窄
+  gap: 18px;
+  align-items: end;
+  min-height: 166px;
+  padding: 22px 24px;
+  overflow: hidden;
+  border-radius: @radius;
+  background:
+    linear-gradient(90deg, rgba(3, 10, 22, 0.84), rgba(3, 10, 22, 0.58)),   // 左深右浅遮罩
+    radial-gradient(circle at 72% 20%, rgba(31, 139, 255, 0.34), transparent 18rem), // 右上角蓝色光晕
+    url(@img-agri) center/cover;                                                // 农业背景图
+
+  // ::before：网格装饰线 + 扫光线动画
+  &::before {
+    position: absolute;
+    inset: 0;
+    content: '';
+    pointer-events: none;
+    opacity: 0.5;
+    background:
+      linear-gradient(90deg, rgba(94, 180, 255, 0.18) 1px, transparent 1px) 0 0/54px 54px,  // 垂直网格线
+      linear-gradient(180deg, rgba(94, 180, 255, 0.12) 1px, transparent 1px) 0 0/54px 54px, // 水平网格线
+      linear-gradient(100deg, transparent 0 42%, rgba(143, 231, 255, 0.2) 48%, transparent 54%) 0 0/220% 100%; // 扫光线
+  }
+
+  // ::after：底部蓝色光晕（blur 模糊）
+  &::after {
+    position: absolute;
+    right: 22%;
+    bottom: -34px;
+    width: 520px;
+    height: 120px;
+    content: '';
+    pointer-events: none;
+    background: radial-gradient(ellipse, rgba(31, 139, 255, 0.34), transparent 68%);
+    filter: blur(8px);
+  }
+
+  // 子元素提升到伪元素上方
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  h2 {
+    margin: 6px 0 10px;
+    color: #fff;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .ant-typography {
+    margin-bottom: 0;
+    color: rgba(224, 237, 250, 0.84);
+  }
+}
+
+/** .hero-copy —— Hero 左侧文案区（最大宽度 680px） */
+.hero-copy {
+  max-width: 680px;
+}
+
+/** .dashboard-eyebrow —— Hero 眉标（青色小字） */
+.dashboard-eyebrow {
+  color: #8fe7ff !important;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+/**
+ * .hero-status-line —— Hero 下方状态标签
+ *   RAG、专家响应、预警同步等运行状态
+ *   每个标签带绿色状态圆点（::before）
+ */
+.hero-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+
+  span {
+    position: relative;
+    padding: 7px 10px 7px 24px;       // 左侧留 24px 给状态圆点
+    color: rgba(226, 241, 255, 0.84);
+    font-size: 12px;
+    border: 1px solid rgba(97, 169, 255, 0.24);
+    border-radius: 999px;              // 胶囊形状
+    background: rgba(4, 16, 31, 0.58);
+    box-shadow: inset 0 0 14px rgba(31, 139, 255, 0.08);
+
+    // 绿色状态圆点（绝对定位在左侧）
+    &::before {
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      width: 7px;
+      height: 7px;
+      content: '';
+      border-radius: 50%;
+      background: @success;
+      box-shadow: 0 0 12px @success;
+      transform: translateY(-50%);
+    }
+  }
+}
+
+/** .overview-strip —— Hero 右侧概览统计条（2 列网格） */
+.overview-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/**
+ * .overview-stat —— 单个概览统计项
+ *   深色半透明背景 + 蓝色边框 + 内外阴影
+ */
+.overview-stat {
+  padding: 12px 14px;
+  border: 1px solid rgba(97, 169, 255, 0.34);
+  border-radius: @radius;
+  background:
+    radial-gradient(circle at 84% 16%, rgba(143, 231, 255, 0.16), transparent 44%),  // 右上角光晕
+    rgba(4, 16, 31, 0.64);                                                             // 深色基底
+  box-shadow: inset 0 0 18px rgba(31, 139, 255, 0.12), 0 0 16px rgba(31, 139, 255, 0.12);
+
+  span {
+    display: block;
+    margin-bottom: 4px;
+    color: #9db4d0;
+    font-size: 12px;                 // 标签文字
+  }
+
+  strong {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 800;                // 大号数值
+  }
+
+  small {
+    margin-left: 4px;
+    color: #9db4d0;
+    font-size: 13px;
+    font-weight: 400;                // 单位文字
+  }
+}
+
+// ============================================================
+// 中部双栏：趋势图 + 病虫害预警列表
+// ============================================================
+
+/**
+ * .dashboard-grid —— 中部双栏网格
+ *   左侧趋势图表（1.45fr） + 右侧预警列表（0.9fr）
+ */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(380px, 0.9fr);
+  gap: 16px;
+
+  // 图表和预警面板统一高度 286px
+  .chart-panel,
+  .alert-panel {
+    height: 286px;
+    min-height: 286px;
+
+    .ant-card-body {
+      height: 100%;
+      padding: 16px 22px 14px;
+      overflow: hidden;
+    }
+  }
+
+  .chart-panel h4,
+  .alert-panel h4 {
+    margin: 0 0 8px;
+    font-size: 19px;
+    line-height: 1.15;
+  }
+}
+
+/**
+ * .chart-switch —— 图表时间范围切换器
+ *   Ant Design Segmented 组件定制：深色背景 + 蓝色选中态
+ */
+.chart-switch {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+
+  &.ant-segmented {
+    padding: 2px;
+    border: 1px solid rgba(53, 151, 255, 0.28);
+    background: rgba(1, 8, 17, 0.72);
+  }
+
+  .ant-segmented-item {
+    min-width: 48px;
+    min-height: 28px;
+    color: #8aa1bb;                  // 默认态淡蓝文字
+  }
+
+  .ant-segmented-item-selected {
+    color: #eaf6ff;                  // 选中态亮白文字
+    background: rgba(31, 139, 255, 0.42);
+    box-shadow: inset 0 0 16px rgba(31, 139, 255, 0.24);
+  }
+}
+
+/** .trend-info-icon —— 趋势图信息图标（绝对定位在标题旁） */
+.trend-info-icon {
+  position: absolute;
+  top: 18px;
+  left: 214px;
+  color: rgba(166, 195, 226, 0.78);
+  font-size: 13px;
+}
+
+// 预警面板和排行面板的 card body：grid 布局
+.alert-panel,
+.ranking-panel {
+  .ant-card-body {
+    display: grid;
+    gap: 14px;
+  }
+}
+
+/** .live-dot —— 实时状态指示点（绿色发光圆点） */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: @success;
+  box-shadow: 0 0 14px @success;
+}
+
+/**
+ * .alert-row —— 预警列表行
+ *   紧凑高度 + 小字体 + 单行省略 + 标签和图标
+ */
+.alert-row {
+  min-height: 0;
+  padding: 2px 0 !important;
+  overflow: hidden;
+  border-color: rgba(75, 160, 255, 0.14) !important;
+  background: rgba(4, 16, 31, 0.26);
+
+  .ant-list-item-meta {
+    align-items: center;
+    min-width: 0;
+  }
+
+  .ant-list-item-meta-avatar {
+    margin-inline-end: 8px;
+  }
+
+  // 预警标题：小字 + 单行省略 + 空间标签
+  .ant-list-item-meta-title {
+    margin-bottom: 1px !important;
+    font-size: 12px;
+    line-height: 1.25;
+
+    .ant-space {
+      display: flex;
+      min-width: 0;
+      gap: 6px !important;
+    }
+
+    .ant-space-item:first-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // 预警描述：更小字体 + 单行省略
+  .ant-list-item-meta-description {
+    font-size: 11px;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // 预警标签：极小高度
+  .ant-tag {
+    height: 18px;
+    margin-inline-end: 0;
+    padding: 0 5px;
+    font-size: 10px;
+    line-height: 16px;
+  }
+
+  // 右侧时间文字
+  > .ant-typography {
+    flex: 0 0 auto;
+    margin-left: 12px;
+    font-size: 11px;
+  }
+}
+
+/** .alert-row.danger —— 高风险预警行：图标变红色 */
+.alert-row.danger {
+  .warning-icon {
+    color: @danger;
+  }
+}
+
+/**
+ * .alert-panel —— 预警面板整体样式
+ *   包含标题行 + 实时状态点 + 5 行列表 + "查看更多"按钮
+ */
+.alert-panel {
+  .panel-title-row {
+    margin-bottom: 8px;
+  }
+
+  h4 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    small {
+      color: @success;            // 实时状态文字为绿色
+      font-size: 11px;
+      font-weight: 500;
+    }
+  }
+
+  // 预警列表：固定 5 行高度
+  .ant-list {
+    max-height: 220px;
+    height: 202px;
+    overflow: hidden;
+
+    .ant-spin-nested-loading,
+    .ant-spin-container,
+    .ant-list-items {
+      height: 100%;
+    }
+
+    .ant-list-items {
+      display: grid;
+      grid-template-rows: repeat(5, 1fr);  // 5 行等高
+      gap: 4px;
+    }
+  }
+
+  .ant-list-item + .ant-list-item {
+    margin-top: 0;
+  }
+}
+
+/** .alert-live-dot —— 预警面板实时状态点（6px 绿色） */
+.alert-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: @success;
+  box-shadow: 0 0 10px @success;
+}
+
+/**
+ * .alert-more —— "查看更多预警"按钮
+ *   蓝色文字 + hover 变青色
+ */
+.alert-more {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0;
+  color: #2d96ff;
+  font-size: 12px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    color: #8fe7ff;
+  }
+}
+
+/** .danger-icon / .warning-icon —— 危险/警告图标（24px + 发光投影） */
+.danger-icon,
+.warning-icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  font-size: 24px;
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+// ============================================================
+// 底部三卡：知识领域、服务覆盖、品种排行
+// ============================================================
+
+/**
+ * .dashboard-bottom-grid —— 底部三栏网格
+ *   领域饼图（0.78fr） + 服务覆盖地图（1.38fr） + 品种排行（1.08fr）
+ */
+.dashboard-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(270px, 0.78fr) minmax(470px, 1.38fr) minmax(340px, 1.08fr);
+  gap: 14px;
+
+  // 图表和排行面板统一高度 274px
+  .chart-panel,
+  .ranking-panel {
+    height: 274px;
+    min-height: 274px;
+
+    .ant-card-body {
+      display: block;
+      height: 100%;
+      padding: 16px 18px 14px;
+      overflow: hidden;
+    }
+
+    h4 {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      margin: 0 0 10px;
+      font-size: 17px;
+      line-height: 1.1;
+    }
+  }
+}
+
+/** .panel-info-icon / .inline-info-icon —— 面板信息图标（淡蓝色小图标） */
+.panel-info-icon,
+.inline-info-icon {
+  color: rgba(166, 195, 226, 0.78);
+  font-size: 13px;
+}
+
+/** .panel-info-icon —— 绝对定位在面板标题旁 */
+.panel-info-icon {
+  position: absolute;
+  top: 16px;
+  left: 158px;
+}
+
+.dashboard-bottom-grid .chart-panel:nth-child(2) .panel-info-icon {
+  left: 218px;                   // 第二个图表面板偏移位置
+}
+
+// ============================================================
+// 服务覆盖地图
+// ============================================================
+
+/**
+ * .coverage-panel —— 服务覆盖面板
+ *   左侧地图 + 右侧 188px 地区列表
+ */
+.coverage-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 188px;  // 地图自适应 + 列表固定
+  gap: 10px;
+  align-items: stretch;
+  height: 220px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/**
+ * .coverage-map —— 服务覆盖地图容器
+ *   多层背景叠加：SVG 世界地图 + 网格线 + 热力光晕 + 暗色渐变
+ *   ::before 提供热力点光晕，::after 提供暗色叠加
+ */
+.coverage-map {
+  position: relative;
+  height: 220px;
+  min-height: 218px;
+  overflow: hidden;
+  border: 1px solid rgba(75, 160, 255, 0.24);
+  border-radius: @radius;
+  background:
+    linear-gradient(180deg, rgba(3, 13, 28, 0.24), rgba(3, 10, 22, 0.78)),           // 上下暗色渐变
+    radial-gradient(circle at 58% 49%, rgba(40, 216, 129, 0.2), transparent 8%),      // 绿色热力点
+    radial-gradient(circle at 68% 60%, rgba(247, 184, 75, 0.2), transparent 10%),     // 橙色热力点
+    url('https://upload.wikimedia.org/wikipedia/commons/b/bc/BlankMap-World-Compact.svg') center 42%/118% auto no-repeat,  // SVG 世界地图
+    linear-gradient(90deg, rgba(42, 113, 189, 0.12) 1px, transparent 1px) 0 0/34px 34px,  // 垂直网格线
+    linear-gradient(180deg, rgba(42, 113, 189, 0.1) 1px, transparent 1px) 0 0/34px 34px,  // 水平网格线
+    linear-gradient(180deg, rgba(5, 15, 29, 0.88), rgba(4, 12, 23, 0.96));               // 深色基底
+  background-blend-mode: normal, screen, screen, luminosity, normal, normal, normal;      // 多模式混合
+
+  // ::before：热力点光晕叠加（screen 模式）
+  &::before {
+    position: absolute;
+    inset: 0;
+    content: '';
+    opacity: 0.9;
+    background:
+      radial-gradient(circle at 61% 52%, rgba(247, 184, 75, 0.34), transparent 6%),    // 橙色热力
+      radial-gradient(circle at 53% 48%, rgba(40, 216, 129, 0.28), transparent 6%),    // 绿色热力
+      radial-gradient(circle at 66% 62%, rgba(31, 139, 255, 0.24), transparent 7%);    // 蓝色热力
+    mix-blend-mode: screen;
+  }
+
+  // ::after：暗色 multiply 模式叠加
+  &::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(3, 10, 22, 0.18), rgba(3, 10, 22, 0.48)),
+      rgba(3, 12, 24, 0.54);
+    mix-blend-mode: multiply;
+  }
+}
+
+/**
+ * .map-scanline —— 地图扫描线动画
+ *   从左向右扫过的青色光线效果
+ */
+.map-scanline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 0 42%, rgba(143, 231, 255, 0.22) 50%, transparent 58%);
+  opacity: 0.5;
+  transform: translateX(-22%);    // 初始偏移位置
+}
+
+/** .map-grid-glow —— 地图底部网格光晕（右下角蓝色光晕） */
+.map-grid-glow {
+  position: absolute;
+  right: 12px;
+  bottom: -20px;
+  width: 210px;
+  height: 120px;
+  pointer-events: none;
+  background: radial-gradient(ellipse, rgba(31, 139, 255, 0.42), transparent 68%);
+  filter: blur(2px);
+}
+
+/**
+ * .heat-point —— 热力点
+ *   绝对定位在地图上，尺寸通过 CSS 变量 --heat-size 控制
+ *   多层径向渐变：黄色中心 → 绿色 → 蓝色 → 透明边缘
+ */
+.heat-point {
+  position: absolute;
+  z-index: 2;
+  width: calc(var(--heat-size) * 0.72);    // 尺寸由 CSS 变量控制
+  height: calc(var(--heat-size) * 0.72);
+  transform: translate(-50%, -50%);        // 以中心点定位
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 244, 137, 1) 0%, rgba(40, 216, 129, 0.88) 22%, rgba(31, 139, 255, 0.2) 58%, transparent 74%);
+  box-shadow:
+    0 0 16px rgba(40, 216, 129, 0.5),     // 绿色光晕
+    0 0 34px rgba(31, 139, 255, 0.3);     // 蓝色光晕
+
+  i {
+    display: none;                         // 隐藏文字标签
+  }
+}
+
+/**
+ * .heat-legend —— 热力图例
+ *   左下角浮动面板：渐变色条 + 低/高标注 + 当前值
+ */
+.heat-legend {
+  position: absolute;
+  left: 12px;
+  right: auto;
+  bottom: 12px;
+  display: grid;
+  grid-template-columns: auto auto 98px auto;  // 低标签 → 渐变条 → 高标签 → 当前值
+  gap: 7px;
+  align-items: center;
+  padding: 6px 8px;
+  color: #8aa1bb;
+  font-size: 11px;
+  border: 1px solid rgba(97, 169, 255, 0.2);
+  border-radius: @radius;
+  background: rgba(3, 10, 22, 0.62);
+
+  // 渐变色条：蓝 → 绿 → 黄
+  b {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #1f8bff, #28d881, #f7b84b);
+    box-shadow: 0 0 12px rgba(31, 139, 255, 0.28);
+  }
+
+  em {
+    color: #dff3ff;
+    font-style: normal;
+  }
+}
+
+/**
+ * .coverage-list —— 覆盖地区列表
+ *   5 行 + 1 表头，固定高度 220px
+ */
+.coverage-list {
+  display: grid;
+  gap: 7px;
+  grid-template-rows: 24px repeat(5, 1fr);  // 表头 24px + 5 行等高
+  min-width: 0;
+  height: 220px;
+  overflow: hidden;
+}
+
+/** .coverage-list-head —— 覆盖列表表头（青色加粗文字） */
+.coverage-list-head {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+  color: #8fe7ff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/**
+ * .coverage-row —— 覆盖列表行
+ *   三列：排名徽章 → 地区名 → 数值
+ *   左侧蓝色渐变装饰线
+ */
+.coverage-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid rgba(75, 160, 255, 0.18);
+  border-radius: @radius;
+  background:
+    linear-gradient(90deg, rgba(31, 139, 255, 0.12), transparent 54%),  // 左侧蓝色渐变
+    rgba(4, 16, 31, 0.46);                                                // 深色基底
+
+  // 排名徽章：金色渐变方块
+  span {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    border-radius: 6px;
+    color: #10213d;
+    font-weight: 800;
+    background: linear-gradient(180deg, #ffe27a, #f7a12f);               // 金色渐变
+    box-shadow: 0 0 10px rgba(247, 161, 47, 0.28);                       // 金色光晕
+  }
+
+  // 地区名：单行省略
+  strong {
+    display: block;
+    color: #f4f8ff;
+    overflow: hidden;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // 附加信息
+  small {
+    color: #8aa1bb;
+    font-size: 10px;
+  }
+
+  // 当前值（青色加粗）
+  em {
+    color: #8fe7ff;
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 800;
+  }
+}
+
+// ============================================================
+// 品种排行
+// ============================================================
+
+/** .ranking-panel .panel-title-row —— 排行面板标题行 */
+.ranking-panel .panel-title-row {
+  margin-bottom: 10px;
+
+  h4 {
+    margin: 0;
+    font-size: 17px;
+  }
+
+  // 排行标签
+  .ant-tag {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+    height: 24px;
+    margin: 0;
+    color: #d8e9ff;
+    border-color: rgba(71, 166, 255, 0.24);
+    border-radius: 6px;
+    background: rgba(5, 18, 35, 0.62);
+  }
+}
+
+/**
+ * .ranking-head —— 排行表头
+ *   四列：徽章 → 品种名+进度条 → 数值 → 趋势
+ */
+.ranking-head {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 118px 62px;
+  gap: 8px;
+  padding: 0 4px 6px;
+  color: #8aa1bb;
+  font-size: 11px;
+}
+
+/**
+ * .rank-row —— 排行行
+ *   四列紧凑排列，高度 28px
+ */
+.rank-row {
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) 76px 62px;
+  gap: 8px;
+  align-items: center;
+  min-height: 28px;
+  margin-top: 0 !important;
+  padding: 4px !important;
+  border-radius: @radius;
+  background: transparent;
+}
+
+/**
+ * .rank-main —— 排行主体区域
+ *   品种名称（92px） + 进度条（自适应）
+ */
+.rank-main {
+  display: grid;
+  grid-template-columns: minmax(0, 92px) minmax(70px, 1fr);
+  gap: 10px;
+  align-items: center;
+  grid-column: 2;
+
+  > span {
+    color: #edf7ff;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/**
+ * .rank-track —— 排行进度条轨道
+ *   深色轨道 + 蓝-青渐变填充条 + 蓝色光晕
+ */
+.rank-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(37, 59, 84, 0.9);    // 深色轨道
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #1f8bff, #8fe7ff);  // 蓝-青渐变填充
+    box-shadow: 0 0 14px rgba(31, 139, 255, 0.45);         // 蓝色光晕
+  }
+}
+
+/** .rank-trend —— 排行趋势文字（靠右对齐） */
+.rank-trend {
+  grid-column: 4;
+  justify-self: end;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/** .rank-badge —— 排行徽章 */
+.rank-badge {
+  justify-self: start;
+  min-width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 0 5px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/** .rank-count —— 排行数值（靠右对齐） */
+.rank-count {
+  grid-column: 3;
+  justify-self: end;
+  color: #fff;
+  font-size: 12px;
+}
+
+// ============================================================
+// 知识领域饼图
+// ============================================================
+
+/**
+ * .domain-panel —— 知识领域面板
+ *   ECharts 环形图 + 右侧图例列表
+ */
+.domain-panel {
+  display: grid;
+  grid-template-columns: minmax(118px, 1fr) minmax(88px, 0.72fr);  // 图表 + 图例
+  gap: 4px 10px;
+  align-items: center;
+  height: 220px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/** .domain-chart —— ECharts 图表容器（固定 176px 高度） */
+.domain-chart {
+  width: 100% !important;
+  height: 176px !important;
+}
+
+/** .domain-list —— 图例列表（12px 间距） */
+.domain-list {
+  display: grid;
+  gap: 12px;
+}
+
+/**
+ * .domain-row —— 图例行
+ *   三列：色块圆点 → 名称 → 百分比
+ */
+.domain-row {
+  display: grid;
+  grid-template-columns: 7px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  // 色块圆点（7px + 发光）
+  span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px currentColor;
+  }
+
+  // 名称：单行省略
+  strong {
+    color: #edf7ff;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // 百分比（青色加粗）
+  em {
+    color: #8fe7ff;
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 800;
+  }
+}
+
+/** .domain-update —— 图例更新时间（淡灰色小字） */
+.domain-update {
+  grid-column: 1 / -1;             // 占满整行
+  align-self: end;
+  color: rgba(150, 171, 196, 0.88);
+  font-size: 11px;
+
+  span {
+    margin-left: 8px;
+    color: rgba(143, 231, 255, 0.78);  // 青色时间值
+  }
+}
+
+/**
+ * .ranking-more —— "查看更多排行"按钮
+ *   蓝色文字 + hover 变青色
+ */
+.ranking-more {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 0;
+  color: #2d96ff;
+  font-size: 12px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    color: #8fe7ff;
+  }
+}
+
+.dashboard-bottom-grid .ranking-panel {
+  .ant-list-item {
+    margin-top: 0;
+    border-bottom: 0 !important;
+  }
+}
+
+// ============================================================
+// 指标卡片相关
+// ============================================================
+
+/** .metric-copy —— 指标卡片的文案区（z-index: 1 防止被装饰层遮挡） */
+.metric-copy {
+  position: relative;
+  z-index: 1;
+}
+
+/**
+ * .metric-sparkline —— 指标卡片中的迷你趋势图
+ *   绝对定位在右下角，112px × 48px
+ */
+.metric-sparkline {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  width: 112px;
+  height: 48px;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+/**
+ * .metric-card —— 指标卡片在首页中的额外发光装饰
+ *   ::after 提供右下角彩色光晕（颜色由 CSS 变量 --metric-color 控制）
+ */
+.metric-card {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    position: absolute;
+    inset: auto -18px -18px auto;
+    width: 132px;
+    height: 132px;
+    content: '';
+    pointer-events: none;
+    background: radial-gradient(circle, var(--metric-color), transparent 68%);  // 颜色由 CSS 变量控制
+    opacity: 0.8;
+  }
+}
+
+.ranking-panel {
+  .ant-list-item {
+    margin-top: 8px;
+    border-bottom: 1px solid rgba(75, 160, 255, 0.1) !important;
+  }
+}

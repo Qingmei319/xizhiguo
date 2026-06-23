@@ -1,0 +1,387 @@
+/**
+ * @file components.less
+ * @description 全局通用组件样式
+ *   包含页面标题栏、发光卡片、指标卡、图表面板、场景背景、
+ *   欢迎卡片、快捷问题卡片等可复用样式。
+ *   此文件定义的类名被多个页面组件共用。
+ *
+ * 样式分类：
+ *   - 页面标题：.page-header
+ *   - 发光卡片：.glow-card（复用 .glow-panel() mixin）
+ *   - 指标卡片：.metric-card / .metric-icon / .metric-value / .metric-trend
+ *   - 图表卡片：.chart-panel
+ *   - 场景背景：.image-scene / .mock-bg / .agri-scene / .lab-scene
+ *   - 欢迎卡片：.welcome-card / .assistant-welcome / .school-emblem
+ *   - 快捷问题：.prompt-grid / .prompt-card / .prompt-dot
+ *   - 图标：.hero-icon / .danger-icon / .warning-icon
+ */
+
+@import './variables.less';
+
+/**
+ * .page-header —— 通用页面标题行
+ *   左侧标题 + 说明文字，右侧操作按钮
+ */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+
+  h2 {
+    margin-top: 0;
+    color: #fff;
+  }
+
+  .ant-typography {
+    color: @text-muted;
+  }
+}
+
+/**
+ * .glow-card —— 通用发光卡片
+ *   通过 .glow-panel() mixin 注入蓝色发光边框和背景。
+ *   数据总览、温室、侧栏面板等多处复用。
+ *   ::before 伪元素提供顶部高光线和内部渐变遮罩。
+ */
+.glow-card {
+  position: relative;
+  overflow: hidden;
+  .glow-panel();
+
+  // 卡片顶部高光线 + 内部渐变遮罩
+  &::before {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    content: '';
+    border-radius: inherit;
+    background:
+      linear-gradient(90deg, transparent, rgba(114, 205, 255, 0.6), transparent) top/100% 1px no-repeat,  // 顶部 1px 高光线
+      linear-gradient(180deg, rgba(114, 205, 255, 0.08), transparent 42%, rgba(31, 139, 255, 0.08));      // 上亮下暗渐变
+  }
+
+  // 内容区提升到伪元素上方
+  .ant-card-body {
+    position: relative;
+    z-index: 1;
+  }
+
+  // 列表项文字颜色
+  .ant-list-item {
+    color: #dfefff;
+  }
+
+  .ant-list-item-meta-title,
+  .ant-list-item-meta-title > * {
+    color: #f4f8ff !important;
+  }
+
+  .ant-list-item-meta-description,
+  .ant-typography-secondary {
+    color: #8aa1bb !important;
+  }
+}
+
+/**
+ * .metric-card —— 通用指标卡片
+ *   MetricCard 组件外层，flex 布局排列图标和数值
+ */
+.metric-card {
+  .ant-card-body {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    min-height: 110px;
+  }
+}
+
+/**
+ * .metric-icon —— 指标卡片中的图标容器
+ *   圆角方块，统一深色背景 + 彩色图标
+ */
+.metric-icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  font-size: 28px;
+  border: none;
+  border-radius: @radius;
+  background: #0b182c;                            // 统一深色背景
+  color: var(--metric-icon-color, #1f8bff);      // 图标颜色通过 CSS 变量传入
+  box-shadow: 0 4px 16px rgba(31, 139, 255, 0.18);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(31, 139, 255, 0.32);
+  }
+}
+
+/**
+ * .metric-value —— 指标卡片中的数值区域
+ *   大号粗体数值 + 小号单位文字
+ */
+.metric-value {
+  margin: 6px 0 4px;
+  color: #fff;
+  font-size: 29px;
+  font-weight: 800;
+  line-height: 1;
+
+  span {
+    margin-left: 6px;
+    color: #c6d8ea;
+    font-size: 14px;
+    font-weight: 400;              // 单位文字较小较淡
+  }
+}
+
+/** .metric-trend —— 指标卡片中的趋势文字（绿色） */
+.metric-trend {
+  color: @success;
+  font-size: 13px;
+}
+
+/**
+ * .chart-panel —— 通用图表卡片
+ *   ChartPanel 组件外层，最小高度 280px
+ */
+.chart-panel {
+  position: relative;
+  min-height: 280px;
+
+  h4 {
+    margin-top: 0;
+    color: #fff;
+  }
+}
+
+/**
+ * .image-scene —— 通用图片场景背景
+ *   聊天、基因、首页大屏等页面复用。
+ *   通过 .scene-overlay() mixin 注入暗色遮罩。
+ */
+.image-scene {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(53, 151, 255, 0.18);
+  border-radius: @radius;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.5);    // 内阴影营造深度感
+  .scene-overlay();
+}
+
+/**
+ * .mock-bg —— 模拟背景
+ *   农业主题图片 + 暗色遮罩叠加
+ */
+.mock-bg {
+  border-radius: @radius;
+  background:
+    linear-gradient(rgba(5, 14, 25, 0.62), rgba(5, 14, 25, 0.86)),  // 暗色遮罩
+    url(@img-agri) center/cover;                                       // 农业背景图
+}
+
+/** .agri-scene —— 农业场景背景（较浅遮罩） */
+.agri-scene {
+  background:
+    linear-gradient(rgba(4, 12, 22, 0.48), rgba(4, 12, 22, 0.86)),
+    url(@img-agri) center/cover;
+}
+
+/** .lab-scene —— 实验室场景背景（较浅遮罩） */
+.lab-scene {
+  background:
+    linear-gradient(rgba(3, 10, 22, 0.34), rgba(3, 10, 22, 0.86)),
+    url(@img-lab) center/cover;
+}
+
+/**
+ * .panel-title-row —— 面板标题行
+ *   标题 + 右侧操作区，用于图表面板、预警面板等
+ */
+.panel-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+/** .danger-icon —— 危险/红色图标 */
+.danger-icon {
+  color: @danger;
+  font-size: 22px;
+}
+
+/** .warning-icon —— 警告/橙色图标 */
+.warning-icon {
+  color: @warning;
+  font-size: 22px;
+}
+
+/**
+ * .welcome-card —— 欢迎卡片
+ *   白色背景 + 白色边框，用于基因页等助手型页面。
+ *   深色文字以确保在白色卡片上可读。
+ */
+.welcome-card {
+  max-width: 960px;
+  margin: 0 auto 28px;
+  color: #06101f;                                // 深色文字适配白底
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(244, 249, 255, 0.95);         // 近白色背景
+
+  h2,
+  .ant-typography {
+    color: #07111f;
+  }
+}
+
+/** .assistant-welcome —— 助手欢迎卡片布局（横向排列图标和文字） */
+.assistant-welcome {
+  .ant-card-body {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    min-height: 164px;
+  }
+}
+
+/**
+ * .school-emblem —— 校徽/Logo 样式
+ *   深蓝色边框 + 浅蓝背景 + 蓝色投影
+ */
+.school-emblem {
+  flex: 0 0 auto;
+  color: #0b4f91;
+  font-weight: 800;
+  border: 5px solid #0b4f91;
+  background: #eef7ff;
+  box-shadow: 0 0 24px rgba(31, 139, 255, 0.24);
+}
+
+/**
+ * .prompt-grid —— 快捷问题网格
+ *   默认 3 列，.two 变体为 2 列
+ */
+.prompt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 1080px;
+  margin: 0 auto 28px;
+
+  // 双列变体
+  &.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 1010px;
+  }
+}
+
+/**
+ * .prompt-card —— 快捷问题卡片
+ *   深色渐变背景 + 蓝色边框 + hover 上浮效果
+ */
+.prompt-card {
+  cursor: pointer;
+  border: 1px solid rgba(53, 151, 255, 0.58);
+  background: linear-gradient(135deg, rgba(12, 34, 60, 0.88), rgba(6, 18, 34, 0.84)) !important;
+  box-shadow: 0 0 20px rgba(31, 139, 255, 0.14);
+  transition: transform 0.2s, border-color 0.2s;
+
+  &:hover {
+    border-color: @primary;
+    transform: translateY(-3px);     // hover 上浮 3px
+  }
+}
+
+/**
+ * .prompt-dot —— 快捷问题卡片中的图标圆点
+ *   圆形图标容器，带 drop-shadow 发光
+ */
+.prompt-dot {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  box-shadow: 0 0 20px currentColor;     // 发光颜色跟随图标色
+}
+
+/** .hero-icon —— Hero 区大图标（蓝色，72px） */
+.hero-icon {
+  color: @primary;
+  font-size: 72px;
+}
+
+.chat-file-input {
+  display: none;
+}
+
+.chat-attachment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: min(900px, 76vw);
+  max-width: 900px;
+  margin: 0 auto 10px;
+
+  &.compact {
+    width: auto;
+    margin: 10px 0 0;
+  }
+
+  &.floating {
+    position: absolute;
+    left: 50%;
+    bottom: 148px;
+    z-index: 3;
+    width: min(900px, 76vw);
+    transform: translateX(-50%);
+    margin: 0;
+    pointer-events: auto;
+  }
+}
+
+.chat-attachment-item {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 320px;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px 0 14px;
+  color: #dfefff;
+  border: 1px solid rgba(73, 153, 255, 0.28);
+  border-radius: 16px;
+  background: rgba(7, 22, 42, 0.76);
+  box-shadow: 0 0 18px rgba(31, 139, 255, 0.12);
+
+  .anticon {
+    flex: 0 0 auto;
+    color: #8fe7ff;
+  }
+
+  small {
+    flex: 0 0 auto;
+    color: rgba(213, 226, 244, 0.62);
+  }
+
+  .ant-btn {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    padding: 0;
+    color: rgba(229, 240, 255, 0.72);
+  }
+}
+
+.chat-attachment-name {
+  min-width: 0;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

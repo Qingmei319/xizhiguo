@@ -1,0 +1,654 @@
+/**
+ * @file chat/index.less
+ * @description AI 对话页（亚果蔬小助手）样式
+ *   包含整页背景、聊天窗口、欢迎态 landing、消息气泡、输入区等。
+ *   这是最复杂的功能页样式，涉及多种状态切换（landing → chatting）。
+ *
+ * 布局结构（landing 模式）：
+ *   .chat-page（背景层）
+ *   └─ .chat-window.landing-mode
+ *      └─ .chat-transcript-stack
+ *         └─ .chat-landing
+ *            ├── .chat-landing-card（欢迎卡片）
+ *            ├── .chat-landing-grid（胶囊快捷按钮）
+ *            └─ .chat-landing-disclaimer（免责声明）
+ *
+ * 布局结构（chatting 模式）：
+ *   .chat-page（背景层）
+ *   └─ .chat-window.chatting-mode
+ *      └─ .chat-transcript-stack
+ *         └─ .chat-message（消息气泡）
+ *      └─ .chat-input-bar（输入区）
+ *
+ * 关键设计决策：
+ *   - 背景图仅在 .chat-page 层设置，侧边栏保持原样
+ *   - .chat-window 背景设为 transparent，让背景图透出
+ *   - 遮罩叠加层（::after）使用纯黑透明，不含蓝色
+ *   - 胶囊快捷按钮（.landing-prompt-pill）使用蓝色光晕效果
+ */
+
+@import '../../styles/variables.less';
+
+/**
+ * .chat-page —— AI 对话页背景
+ *   整屏农业背景图 + 纯黑透明遮罩（rgba(0,0,0,0.38/0.62))
+ *   ::after 遮罩层设为 transparent（背景图在 linear-gradient 中已叠加暗色）
+ */
+.chat-page {
+  position: relative;
+  height: @content-height;
+  min-height: @content-height;
+  padding: 0;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0.62)),  // 纯黑透明遮罩（不含蓝色）
+    url('@/assets/AI-chat.png') center/cover !important;            // AI 对话背景图
+  box-shadow: none !important;     // 覆盖 .image-scene 内阴影，消除与侧边栏的缝隙
+
+  // 遮罩叠加层：设为 transparent，不额外叠加颜色
+  &::after {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    content: '';
+    background: transparent;      // 不叠加额外遮罩，避免蓝色残留
+  } 
+}
+
+/**
+ * .chat-page .chat-window —— 主聊天窗口
+ *   铺满内容区，背景设为 transparent 让背景图透出
+ *   内部用上方消息区 + 下方输入区的网格布局
+ */
+.chat-page .chat-window {
+  position: absolute;
+  inset: 0;
+  z-index: 2;                     // 位于遮罩层之上
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;  // 背景透传，显示底层背景图
+  box-shadow: none;
+
+  // 去掉 glow-card ::before 的圆角
+  &::before {
+    border-radius: 0;
+  }
+
+  // Card body：消息区 + 输入区的纵向网格
+  .ant-card-body {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;  // 消息区自适应 + 输入区固定
+    gap: 12px;
+    height: 100%;
+    min-height: 0;
+    padding: 18px 28px 28px;
+    overflow: hidden;
+  }
+
+  // 消息滚动区域：对话态时必须限制高度，防止溢出盖住输入框
+  .chat-transcript-frame {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+/**
+ * .chat-window.landing-mode —— 欢迎态布局
+ *   消息区内容垂直居中，输入框固定在底部
+ *   使用 flex 纵向布局：消息区自适应居中 + 输入区 margin-auto 贴底
+ */
+.chat-window.landing-mode .ant-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;           // 主内容区垂直居中
+  padding: 28px 28px 24px;          // 四周留白
+
+  // 消息记录容器（landing 内容）：占据中间区域
+  .chat-transcript-frame {
+    flex: 1 1 auto;                 // 弹性填充可用空间
+    display: flex;
+    align-items: center;            // 内部内容垂直居中
+    justify-content: center;
+    min-height: 0;
+    width: 100%;
+  }
+
+  // 输入框：margin-top auto 推到最底部
+  .chat-input {
+    margin-top: auto;
+    flex-shrink: 0;
+  }
+
+  // 免责声明也贴底
+  .chat-landing-disclaimer {
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+}
+
+/**
+ * .chat-window.chatting-mode —— 对话态布局
+ *   消息区正常流式排列（stretch）
+ */
+.chat-window.chatting-mode .ant-card-body {
+  justify-content: stretch;
+}
+
+/** .chat-window .chat-sidebar —— 聊天侧边栏（在 ChatPage 中隐藏） */
+.chat-window .chat-sidebar {
+  display: none;
+}
+
+.chat-window-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(980px, 100%);
+  margin: 0 auto;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(73, 153, 255, 0.18);
+
+  > div:first-child {
+    min-width: 0;
+  }
+
+  h4 {
+    margin: 0 0 2px;
+    color: #fff;
+  }
+
+  .ant-typography {
+    color: rgba(218, 231, 248, 0.72);
+  }
+}
+
+.chat-context-header {
+  margin-top: 0;
+  padding-bottom: 12px;
+  border-bottom: 0;
+
+  .ant-select {
+    min-width: 220px;
+  }
+}
+
+/**
+ * .chat-window.landing-mode —— 欢迎态下对话记录区垂直居中
+ *   内容（欢迎卡片 + 胶囊按钮）在可用空间内居中显示
+ */
+.chat-window.landing-mode {
+  .chat-transcript-stack {
+    justify-content: center;        // 垂直居中
+    align-items: center;            // 水平居中
+    height: 100%;
+    min-height: 0;
+    padding-top: 0;                 // 清除顶部间距，由 flex 居中控制
+    padding-bottom: 0;
+  }
+}
+
+/**
+ * .chat-transcript-stack —— 对话记录堆叠容器
+ *   消息从底部堆叠，宽度限 980px，居中排列
+ */
+.chat-transcript-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;     // 消息从底部开始
+  gap: 18px;
+  width: min(980px, 100%);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 0 4px 8px;
+}
+
+// ============================================================
+// 欢迎态 Landing 区域
+// ============================================================
+
+/**
+ * .chat-landing —— 欢迎态整体容器
+ *   内容居上居中排列，32px 间距
+ */
+.chat-landing {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 32px;
+  min-height: 0;
+  padding: 0;
+}
+
+/**
+ * .chat-landing-card —— 欢迎卡片
+ *   白色背景卡片，包含大头像和欢迎文案
+ *   两列布局：136px 头像 + 自适应文字
+ */
+.chat-landing-card {
+  display: grid;
+  grid-template-columns: 136px minmax(0, 1fr);  // Logo + 文案两列
+  gap: 30px;
+  align-items: center;
+  width: min(830px, 82vw);
+  padding: 32px 42px;
+  border: 1px solid rgba(255, 255, 255, 0.72);  // 白色边框（白底卡片）
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);          // 近白色背景
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);    // 大阴影增强立体感
+}
+
+/**
+ * .chat-landing-badge —— 欢迎卡片中的 Logo/头像
+ *   136px 大头像，绿色边框 + 浅绿背景 + 蓝色投影
+ */
+.chat-landing-badge {
+  width: 136px !important;
+  height: 136px !important;
+  padding: 16px;
+  border: 4px solid #159b5d;                    // 绿色粗边框
+  background: #159b5d;                           // 浅绿背景
+  box-shadow: 0 0 30px rgba(31, 139, 255, 0.28); // 蓝色外投影
+
+  img {
+    object-fit: contain;
+  }
+}
+
+/**
+ * .chat-landing-copy —— 欢迎卡片中的文案区域
+ *   深色标题 + 中灰正文 + 浅灰末行
+ */
+.chat-landing-copy {
+  h2 {
+    margin: 0 0 10px;
+    color: #111c2e;              // 深色标题（白底上需深色文字）
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  p,
+  .ant-typography {
+    margin: 0 0 7px;
+    color: #34455c;              // 中灰色正文
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  // 末行文字更淡更小
+  .ant-typography:last-child {
+    margin: 0;
+    color: #5a6e88;
+    font-size: 15px;
+  }
+}
+
+/**
+ * .chat-landing-grid —— 欢迎态快捷问题按钮网格
+ *   三个胶囊按钮在同一行（flex-wrap: nowrap）
+ *   居中排列，宽度限 720px
+ */
+.chat-landing-grid {
+  display: flex;
+  flex-wrap: nowrap;             // 强制同一行，不换行
+  gap: 12px;
+  justify-content: center;
+  width: min(720px, 78vw);
+}
+
+/**
+ * .landing-prompt-pill —— 胶囊形快捷问题按钮
+ *   蓝色光晕效果：蓝色边框 + 蓝色径向渐变 + 蓝色内外阴影
+ *   44px 高度 + 22px 圆角 = 胶囊形状
+ *   hover 时光晕增强 + 微上浮
+ */
+.landing-prompt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;                    // 图标、文字、箭头之间 10px 间距
+  height: 44px;                 // 胶囊高度
+  padding: 0 20px 0 12px;      // 左窄右宽（图标色块较窄）
+  border: 1px solid rgba(75, 160, 255, 0.72);                           // 蓝色边框
+  border-radius: 10px;          // 圆角 = 高度/2 → 胶囊形状
+  background:
+    radial-gradient(circle at 20% 0%, rgba(67, 157, 255, 0.18), transparent 38%),  // 左上角蓝色光晕
+    linear-gradient(135deg, rgba(12, 34, 60, 0.88), rgba(6, 18, 34, 0.88)) !important;  // 深色基底
+  box-shadow: 0 0 18px rgba(31, 139, 255, 0.28), inset 0 0 22px rgba(31, 139, 255, 0.1);  // 蓝色外内阴影
+  color: #dbeaff;
+  font-size: 14px;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+
+  // hover：光晕增强 + 微上浮 1px
+  &:hover {
+    border-color: rgba(143, 231, 255, 0.95);
+    box-shadow: 0 0 28px rgba(31, 139, 255, 0.42), inset 0 0 28px rgba(31, 139, 255, 0.16);
+    transform: translateY(-1px);
+    color: #fff;
+  }
+}
+
+/**
+ * .pill-icon —— 胶囊按钮中的图标色块
+ *   28px 圆角方块，背景色由 style={{ background: item.color }} 动态设置
+ *   带 drop-shadow 发光效果
+ */
+.pill-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;               // 首字加粗显示
+  border-radius: 14px;
+  // box-shadow: 0 0 12px currentColor;  // 发光颜色跟随动态背景色
+}
+
+/** .pill-label —— 胶囊按钮中的文字标签（不换行） */
+.pill-label {
+  white-space: nowrap;
+}
+
+/** .pill-arrow —— 胶囊按钮中的箭头图标（淡蓝色） */
+.pill-arrow {
+  font-size: 12px;
+  color: rgba(219, 234, 255, 0.6);
+}
+
+/** .chat-landing-tips —— 欢迎态提示文字（当前隐藏） */
+.chat-landing-tips {
+  display: none;
+}
+
+/**
+ * .chat-landing-disclaimer —— 欢迎态免责声明
+ *   居中排列，淡灰色小字
+ */
+.chat-landing-disclaimer {
+  justify-self: center;
+  margin-top: 0;
+  color: rgba(189, 205, 222, 0.64);
+  font-size: 12px;
+}
+
+// ============================================================
+// 输入区域
+// ============================================================
+
+/**
+ * .chat-input —— 胶囊形发光输入容器（ChatPage 使用）
+ *   整体作为一个胶囊形容器，带蓝色发光边框
+ *   内部包含：附件按钮 + 透明输入框 + 发送按钮
+ */
+.chat-input {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 62px;
+  align-items: center;
+  gap: 16px;
+  width: min(900px, 76vw);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 14px 18px;
+  border: 1px solid rgba(54, 153, 255, 0.86);
+  border-radius: 34px;
+  background: rgba(5, 18, 34, 0.84);
+  box-shadow: 0 0 30px rgba(31, 139, 255, 0.52), inset 0 0 24px rgba(31, 139, 255, 0.12);
+  backdrop-filter: blur(14px);
+  flex-shrink: 0;
+
+  > .ant-btn:first-child {
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 23px;
+    color: #dfefff;
+    border-color: rgba(216, 235, 255, 0.52);
+    background: rgba(8, 20, 40, 0.52);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      border-color: rgba(73, 153, 255, 0.6);
+      color: #6db8ff;
+      background: rgba(31, 139, 255, 0.1);
+    }
+  }
+
+  textarea.ant-input {
+    min-height: 48px !important;
+    padding: 12px 18px;
+    color: #eaf4ff;
+    font-size: 16px;
+    border: 1px solid rgba(117, 153, 192, 0.46);
+    border-radius: 25px;
+    background: rgba(8, 22, 40, 0.92);
+    resize: none;
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
+  > .ant-btn-primary {
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 23px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1d77ff 0%, #40a9ff 100%);
+    border: none;
+    box-shadow: 0 0 28px rgba(31, 139, 255, 0.82);
+
+    &:hover {
+      background: linear-gradient(135deg, #4096ff 0%, #69b7ff 100%);
+      box-shadow: 0 0 16px rgba(31, 139, 255, 0.5);
+    }
+  }
+}
+
+.chat-context-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(900px, 76vw);
+  max-width: 900px;
+  margin: 0 auto -6px;
+  color: rgba(218, 231, 248, 0.72);
+  font-size: 13px;
+
+  > span {
+    flex: 0 0 auto;
+  }
+
+  .ant-select {
+    min-width: 220px;
+  }
+
+  .ant-select-selector {
+    height: 32px !important;
+    color: #dfefff !important;
+    border-color: rgba(73, 153, 255, 0.32) !important;
+    border-radius: 16px !important;
+    background: rgba(5, 18, 34, 0.68) !important;
+    box-shadow: 0 0 14px rgba(31, 139, 255, 0.12);
+  }
+
+  .ant-select-selection-placeholder,
+  .ant-select-selection-item {
+    line-height: 30px !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .chat-input,
+  .chat-context-bar {
+    width: min(900px, 88vw);
+  }
+}
+
+@media (max-width: 760px) {
+  .chat-input {
+    grid-template-columns: 48px minmax(0, 1fr) 52px;
+
+    > .ant-btn:first-child,
+    > .ant-btn-primary {
+      width: 46px !important;
+      height: 46px !important;
+    }
+  }
+
+  .chat-context-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+
+    .ant-select {
+      width: 100% !important;
+    }
+  }
+}
+
+// ============================================================
+// 消息气泡
+// ============================================================
+
+/**
+ * .chat-message —— 单条消息容器
+ *   助手消息靠左（默认），用户消息靠右（row-reverse）
+ */
+.chat-message {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+
+  // 用户消息：右对齐，绿色渐变气泡
+  &.user {
+    flex-direction: row-reverse;
+
+    .chat-message-bubble {
+      border-color: rgba(40, 216, 129, 0.3);
+      background: linear-gradient(135deg, rgba(11, 84, 57, 0.86), rgba(7, 35, 32, 0.92));
+    }
+  }
+}
+
+/**
+ * .chat-message-bubble —— 消息气泡
+ *   蓝色边框 + 深色背景 + 最大宽度 760px
+ *   保留换行（white-space: pre-line）
+ */
+.chat-message-bubble {
+  width: fit-content;
+  max-width: min(800px, 100%);
+  padding: 12px 16px;
+  border: 1px solid rgba(73, 153, 255, 0.26);
+  border-radius: @radius;
+  background: rgba(8, 24, 45, 0.86);
+
+  // 角色标签间距
+  .ant-tag {
+    margin-bottom: 8px;
+  }
+
+  // 段落文字：亮白色 + 保留换行
+  .ant-typography {
+    margin: 0 !important;
+    color: #eef8ff;
+    line-height: 1.72;
+    white-space: pre-line;
+  }
+}
+
+.chat-message-content-streaming {
+  opacity: 0.96;
+}
+
+/**
+ * .chat-answer-sections —— 消息中答案分段区域
+ *   AI 回复按标题分段展示，每个分段有微弱白色背景
+ */
+.chat-answer-sections {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+
+  > div {
+    padding: 9px 10px;
+    border: 1px solid rgba(128, 172, 223, 0.18);
+    border-radius: @radius;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #fff;
+    font-size: 13px;
+  }
+
+  p {
+    margin: 0;
+    color: #d6e4f4;
+    line-height: 1.65;
+  }
+}
+
+/**
+ * .chat-citation-row —— 引用来源区
+ *   水平排列多个标签，可点击
+ */
+.chat-citation-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+
+  .ant-tag {
+    cursor: pointer;
+  }
+}
+
+/**
+ * .collapse-panel —— 思考过程折叠面板
+ *   半透明深色背景 + 蓝色边框
+ */
+.collapse-panel {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(73, 153, 255, 0.18);
+  border-radius: @radius;
+  background: rgba(7, 22, 42, 0.56) !important;
+
+  .ant-collapse-header {
+    align-items: center !important;
+    padding: 10px 12px !important;
+  }
+
+  .ant-collapse-content {
+    border-top: 1px solid rgba(73, 153, 255, 0.12);
+    background: transparent;
+  }
+
+  .ant-collapse-content-box {
+    padding: 10px 12px 12px !important;
+  }
+}
+
+/** .collapse-panel-label —— 折叠面板标签（青色小字） */
+.collapse-panel-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #8fe7ff;
+  font-size: 12px;
+  font-weight: 600;
+}

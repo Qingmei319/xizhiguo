@@ -1,0 +1,62 @@
+/**
+ * @file auth/index.less
+ * @description 登录页样式
+ *   包含整屏登录背景、左侧品牌文案区、右侧登录卡片和表单。
+ *
+ * 布局结构：
+ *   .login-page → .login-hero（左栏）+ .login-card（右栏）
+ *   全屏背景图 + 暗色遮罩，左右两栏网格布局
+ */
+
+@import '../../styles/variables.less';
+
+/**
+ * .login-page —— 登录页整体
+ *   左右两栏布局（自适应 + 420px 固定卡片宽度）
+ *   整屏背景图（登录专用）+ 暗色渐变遮罩
+ */
+.login-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;   // 左栏自适应 + 右栏固定 420px
+  gap: 54px;
+  align-items: center;
+  min-height: 100vh;
+  padding: 64px 9vw;                             // 大边距确保背景图可见
+  background:
+    linear-gradient(90deg, rgba(2, 8, 20, 0.72), rgba(2, 8, 20, 0.92)),  // 左深右浅渐变遮罩
+    url(@img-login) center/cover;                                          // 登录页背景图
+}
+
+/**
+ * .login-hero —— 左侧品牌文案区
+ *   大号主标题 + 副标题 + 描述文字
+ */
+.login-hero {
+  h1 {
+    margin: 0;
+    color: #fff;
+    font-size: 46px;            // 超大标题
+  }
+
+  h2 {
+    max-width: 720px;
+    color: #fff;
+    font-size: 52px;            // 更大副标题
+  }
+
+  p {
+    max-width: 680px;
+    color: #c6d8ea;             // 淡色描述文字
+    font-size: 18px;
+  }
+}
+
+/** .login-card —— 右侧登录卡片（12px 内边距） */
+.login-card {
+  padding: 12px;
+}
+
+/** .login-form —— 登录表单（顶部 24px 间距） */
+.login-form {
+  margin-top: 24px;
+}
